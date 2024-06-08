@@ -152,12 +152,11 @@ async function getShipStaticData(aisMessage) {
 		data.terminal = getTerminal(aisMessage);
 		
 		// update ships_data array & save full ship data to disk
-		// ships_data.push(data);
-		// saveData(data, ships_data_filepath, 'csv');
+		saveData(data, ships_data_filepath, 'csv');
 
 		// save data to use for a lookup (using object destructuring)
-		// updateLookupTable();
-		// await saveData(ships_list, ships_lookup_filepath, 'json');
+		updateLookupTable();
+		await saveData(ships_list, ships_lookup_filepath, 'json');
 
 		// run summary stats
 		// generateSummaryStats(ships_data);
