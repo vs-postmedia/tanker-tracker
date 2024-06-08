@@ -1,0 +1,210 @@
+import WebSocket from 'ws';
+import saveData from './save-data.js';
+import { point, polygon } from '@turf/helpers';
+import generateSummaryStats from './generate-summary-stats.js';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+
+// DATA
+import zones from '../data/zone-coords.json' assert { type: 'json' };
+import ships_list from '../data/ships-list.json' assert { type: 'json' };
+import current_ships from '../data/current-ships.json' assert { type: 'json' };
+// const ships_data = require('../data/ships-data.json');
+
+// VARS
+let ships_list_lookup = [];
+let current_ships_cache = [];
+let ebay_poly, suncor_poly, westridge_poly;
+const current_ships_interval = 5000;
+// const current_ships_interval = 300000;
+const ship_types = [70, 80]; // 80 === tanker, 70 === cargo
+// https://www.perplexity.ai/search/a9a7823d-a845-4949-906c-3a006867cbf0
+
+// FILEPATHS
+const ships_data_filepath = './data/ships-data';
+const ships_lookup_filepath = './data/ships-list';
+const current_ships_filepath = './data/current-ships';
+
+async function aisStream(url, apiKey) {
+	const socket = new WebSocket(url);
+
+	// create polygons for terminals
+	ebay_poly = polygon([zones.englishbay]);
+	suncor_poly = polygon([zones.suncor]);
+	westridge_poly = polygon([zones.westridge]);
+
+	// run summary stats
+	// generateSummaryStats();
+	console.log()
+
+	socket.addEventListener('open', _ => {
+		// setup websocket request
+		const subscriptionMsg = {
+			APIkey: apiKey,
+			BoundingBoxes: [
+				[				
+					// English Bay
+					zones.englishbay[0], zones.englishbay[2]
+
+					// Suncor Terminal
+					// zones.suncor[0], zones.suncor[2]
+
+					// Westridge Terminal
+					// zones.westridge[0], zones.westridge[2]
+				]
+			],
+			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
+		};
+
+		console.log(JSON.stringify(subscriptionMsg));
+		
+		// open AISstream websocket
+		socket.send(JSON.stringify(subscriptionMsg));
+
+		// save the current ships cache to disk every xxx minutes
+		setInterval(() => {
+			// saveData(current_ships_cache, current_ships_filepath, 'json');
+		}, current_ships_interval);
+	});
+
+	// error msg
+	socket.addEventListener('error', (e) => {
+		console.log(e);
+	});
+
+	socket.addEventListener('message', (e) => {
+		let aisMessage = JSON.parse(e.data);
+
+		// get static ship data on ships in bboxes
+		if (aisMessage.MessageType === 'ShipStaticData') {
+			console.log(aisMessage)
+			// check ship type
+			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
+				getShipStaticData(aisMessage);
+			}
+		}
+
+		// check for moored or moving ships
+		if (aisMessage.MessageType === 'PositionReport') {
+			// console.log(aisMessage)
+			if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
+				// cache currently moored ships
+				// getCurrentShips(aisMessage);
+				// checkShipDeparture(aisMessage);
+			}
+		}
+	});
+}
+
+// ba
+async function getCurrentShips(aisMessage) {
+	let data = aisMessage.Message.PositionReport;
+
+	console.log('getCurrentShips')
+	console.log(data)
+
+	// check navstatus to see if ship is moored or at anchor
+	if (data.NavigationalStatus === 1 || data.NavigationalStatus === 5) {
+		// get mmsi number
+		let mmsi = aisMessage.MetaData.MMSI;
+
+		console.log(`MMSI: ${mmsi}`)
+		// console.log(current_ships_cache.find(d => aisMessage.MetaData.MMSI === mmsi))
+
+		// if mmsi isn't cached as currently moored, do so.
+		if (current_ships_cache.find(d => d.MMSI === mmsi) === undefined) {
+			// determine terminal
+			data.terminal = getTerminal(aisMessage);
+			current_ships_cache.push(data);
+
+			console.log(current_ships_cache)
+		}
+	}
+}
+
+// staticshipdata includes imo, mmsi, ship type, size, etc
+async function getShipStaticData(aisMessage) {
+	let data = aisMessage.Message.ShipStaticData;
+
+	console.log(aisMessage.MessageType)
+
+	// timestamp to local ymd format
+	const timestamp = aisMessage.MetaData.time_utc;
+	const date = new Date(timestamp);
+	data.date = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+
+	// if new IMO or same IMO on new date, update cache 
+	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
+	let new_date = ships_list.some(d => d.date === data.date);
+
+	console.log(new_imo, new_date)
+
+	if (new_imo === false || new_imo === true && new_date === false) {
+		console.log('New ship in boundary');
+
+		// trim whitespace from strings
+		data.CallSign = data.CallSign.trim();
+		data.Destination = data.Destination.trim();
+		data.Name = data.Name.trim();
+		// get mmsi & arrival date
+		data.MMSI = aisMessage.MetaData.MMSI;
+		data.time_utc = timestamp;
+		// determine terminal
+		data.terminal = getTerminal(aisMessage);
+		
+		// update ships_data array & save full ship data to disk
+		// ships_data.push(data);
+		// saveData(data, ships_data_filepath, 'csv');
+
+		// save data to use for a lookup (using object destructuring)
+		// updateLookupTable();
+		// await saveData(ships_list, ships_lookup_filepath, 'json');
+
+		// run summary stats
+		// generateSummaryStats(ships_data);
+
+		// post to twitter/socials <-- maybe this is better from position reports
+	}
+}
+
+// unused so far...
+async function checkShipDeparture(aisMessage) {
+	// course over ground (direction of movement)
+	let cog = aisMessage.Message.PositionReport.Cog;
+	// speed over ground (<1 seems to be 'stopped')
+	let sog = aisMessage.Message.PositionReport.Sog;
+	// https://datalastic.com/blog/ais-navigational-status/
+	let navstat = aisMessage.Message.PositionReport.NavigationalStatus;
+	
+	if (navstat === 0 && cog > 200 && cog < 338 && sog > 1) {
+		console.log('headed west!')
+		console.log(aisMessage);
+	}
+}
+
+// check if ship lat/lon is inside one of the defined terminal zones
+function getTerminal(data) {
+	let terminal;
+
+	// ship position
+	const point = ([data.MetaData.latitude, data.MetaData.longitude]);
+	
+	// determine where ship is located
+	if (booleanPointInPolygon(point, westridge_poly)) {
+		terminal = 'Westridge';
+	} else if (booleanPointInPolygon(point, suncor_poly)) {
+	// 	terminal = 'Suncor';
+	} else if (booleanPointInPolygon(point, ebay_poly)) {
+		terminal = 'English Bay'
+	}
+
+	return terminal;
+}
+
+function updateLookupTable(data) {
+	let lookup = (({ImoNumber, MMSI, date}) => ({ImoNumber, MMSI, date}))(data);
+	ships_list.push(lookup);
+}
+
+// kick isht off!!!
+export default aisStream;
+
