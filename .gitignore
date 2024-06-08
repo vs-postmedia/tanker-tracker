@@ -1,6 +1,9 @@
 .env
 .DS_Store
-tmp_data/*
+westridge-ships.json
+open-ship.js
+check-ws.js
+
 
 # Logs
 logs
