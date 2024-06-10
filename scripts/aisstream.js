@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import winston from 'winston';
 import saveData from './save-data.js';
 import { point, polygon } from '@turf/helpers';
 import generateSummaryStats from './generate-summary-stats.js';
@@ -11,6 +12,7 @@ import current_ships from '../data/current-ships.json' assert { type: 'json' };
 // const ships_data = require('../data/ships-data.json');
 
 // VARS
+let logger;
 let ships_list_lookup = [];
 let current_ships_cache = [];
 let ebay_poly, suncor_poly, westridge_poly;
@@ -23,9 +25,13 @@ const ship_types = [70, 80]; // 80 === tanker, 70 === cargo
 const ships_data_filepath = './data/ships-data';
 const ships_lookup_filepath = './data/ships-list';
 const current_ships_filepath = './data/current-ships';
+const static_ships_log_filepath = './logs/static-ships.log';
 
 async function aisStream(url, apiKey) {
 	const socket = new WebSocket(url);
+
+	// setup logging
+	logger = await createLogger(static_ships_log_filepath, 'info');
 
 	// create polygons for terminals
 	ebay_poly = polygon([zones.englishbay]);
@@ -43,13 +49,13 @@ async function aisStream(url, apiKey) {
 			BoundingBoxes: [
 				[				
 					// English Bay
-					zones.englishbay[0], zones.englishbay[2]
+					// zones.englishbay[0], zones.englishbay[2]
+					
+					// Westridge Terminal
+					zones.westridge[0], zones.westridge[2],
 
 					// Suncor Terminal
-					// zones.suncor[0], zones.suncor[2]
-
-					// Westridge Terminal
-					// zones.westridge[0], zones.westridge[2]
+					// zones.suncor[0], zones.suncor[2],
 				]
 			],
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
@@ -69,6 +75,7 @@ async function aisStream(url, apiKey) {
 	// error msg
 	socket.addEventListener('error', (e) => {
 		console.log(e);
+		logger.err(`Socket setup failed: ${JSON.parse(e)}`);
 	});
 
 	socket.addEventListener('message', (e) => {
@@ -89,17 +96,33 @@ async function aisStream(url, apiKey) {
 			if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
 				// cache currently moored ships
 				// getCurrentShips(aisMessage);
-				// checkShipDeparture(aisMessage);
 			}
 		}
 	});
 }
+
+// setup logging
+async function createLogger(logfile, level) {
+	return winston.createLogger({
+		level: level,
+		format: winston.format.combine(
+			winston.format.timestamp(),
+			winston.format.printf(({ timestamp, level, message }) => `${timestamp} ${level}: ${message}`)
+		),
+		transports: [
+			new winston.transports.Console(),
+			new winston.transports.File({ filename: logfile })
+		]
+	});
+}
+
 
 // ba
 async function getCurrentShips(aisMessage) {
 	let data = aisMessage.Message.PositionReport;
 
 	console.log('getCurrentShips')
+	// logger.info('getCurrentShips')
 	console.log(data)
 
 	// check navstatus to see if ship is moored or at anchor
@@ -125,7 +148,7 @@ async function getCurrentShips(aisMessage) {
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 
-	console.log(aisMessage.MessageType)
+	console.log(`${aisMessage.MessageType}: ${aisMessage.MetaData.ShipName}`)
 
 	// timestamp to local ymd format
 	const timestamp = aisMessage.MetaData.time_utc;
@@ -139,7 +162,7 @@ async function getShipStaticData(aisMessage) {
 	console.log(new_imo, new_date)
 
 	if (new_imo === false || new_imo === true && new_date === false) {
-		console.log('New ship in boundary');
+		console.log(`New ship in boundary: ${data.Name}`);
 
 		// trim whitespace from strings
 		data.CallSign = data.CallSign.trim();
@@ -155,7 +178,7 @@ async function getShipStaticData(aisMessage) {
 		saveData(data, ships_data_filepath, 'csv');
 
 		// save data to use for a lookup (using object destructuring)
-		updateLookupTable();
+		updateLookupTable(data);
 		await saveData(ships_list, ships_lookup_filepath, 'json');
 
 		// run summary stats
@@ -191,7 +214,7 @@ function getTerminal(data) {
 	if (booleanPointInPolygon(point, westridge_poly)) {
 		terminal = 'Westridge';
 	} else if (booleanPointInPolygon(point, suncor_poly)) {
-	// 	terminal = 'Suncor';
+		terminal = 'Suncor';
 	} else if (booleanPointInPolygon(point, ebay_poly)) {
 		terminal = 'English Bay'
 	}
