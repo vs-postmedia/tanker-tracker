@@ -51,11 +51,16 @@ async function aisStream(url, apiKey) {
 					// English Bay
 					// zones.englishbay[0], zones.englishbay[2]
 					
-					// Westridge Terminal
-					zones.westridge[0], zones.westridge[2],
-
 					// Suncor Terminal
-					// zones.suncor[0], zones.suncor[2],
+					// zones.suncor[0], zones.suncor[2]
+					// [zones.suncor[0], zones.suncor[1], zones.suncor[2], zones.suncor[3]],
+
+					// Westridge Terminal
+					zones.westridge[0], zones.westridge[2]
+					// zones.westridge[0], zones.westridge[1], zones.westridge[2], zones.westridge[3]
+
+					// westridge & suncor
+					// zones.westridge[0], zones.suncor[1], zones.suncor[2], zones.westridge[3]
 				]
 			],
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
@@ -92,7 +97,7 @@ async function aisStream(url, apiKey) {
 
 		// check for moored or moving ships
 		if (aisMessage.MessageType === 'PositionReport') {
-			// console.log(aisMessage)
+			console.log(aisMessage)
 			if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
 				// cache currently moored ships
 				// getCurrentShips(aisMessage);
@@ -116,8 +121,7 @@ async function createLogger(logfile, level) {
 	});
 }
 
-
-// ba
+// get currentShipPositions
 async function getCurrentShips(aisMessage) {
 	let data = aisMessage.Message.PositionReport;
 
@@ -148,7 +152,8 @@ async function getCurrentShips(aisMessage) {
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 
-	console.log(`${aisMessage.MessageType}: ${aisMessage.MetaData.ShipName}`)
+	console.log(`${aisMessage.MessageType}: ${aisMessage.MetaData.ShipName}`);
+	logger.info(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 	// timestamp to local ymd format
 	const timestamp = aisMessage.MetaData.time_utc;
@@ -158,8 +163,6 @@ async function getShipStaticData(aisMessage) {
 	// if new IMO or same IMO on new date, update cache 
 	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
 	let new_date = ships_list.some(d => d.date === data.date);
-
-	console.log(new_imo, new_date)
 
 	if (new_imo === false || new_imo === true && new_date === false) {
 		console.log(`New ship in boundary: ${data.Name}`);
@@ -183,8 +186,6 @@ async function getShipStaticData(aisMessage) {
 
 		// run summary stats
 		// generateSummaryStats(ships_data);
-
-		// post to twitter/socials <-- maybe this is better from position reports
 	}
 }
 
@@ -218,6 +219,8 @@ function getTerminal(data) {
 	} else if (booleanPointInPolygon(point, ebay_poly)) {
 		terminal = 'English Bay'
 	}
+
+	if (terminal == undefined) console.log(`Terminal undefined: ${data}`)
 
 	return terminal;
 }
