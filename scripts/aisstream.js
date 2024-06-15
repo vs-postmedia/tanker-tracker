@@ -17,7 +17,7 @@ let ships_list_lookup = [];
 let current_ships_cache = [];
 let ebay_poly, suncor_poly, westridge_poly;
 
-const runtime = 45; // how long websocket will stay open, in minutes
+const runtime = 50; // how long websocket will stay open, in minutes
 const current_ships_interval = 5000;
 // https://www.navcen.uscg.gov/sites/default/files/pdf/AIS/AISGuide.pdf
 const ship_types = [70, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -30,9 +30,6 @@ const static_ships_log_filepath = './logs/static-ships.log';
 
 async function aisStream(url, apiKey) {
 	socket = new WebSocket(url);
-
-	// setup logging
-	logger = await createLogger(static_ships_log_filepath, 'info');
 
 	// create polygons for terminals
 	ebay_poly = polygon([zones.englishbay]);
@@ -90,8 +87,6 @@ async function aisStream(url, apiKey) {
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
 			console.log(aisMessage)
-
-			console.log(ship_types.includes(aisMessage.Message.ShipStaticData.Type))
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				getShipStaticData(aisMessage);
@@ -103,7 +98,7 @@ async function aisStream(url, apiKey) {
 			console.log(aisMessage)
 			if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
 				// cache currently moored ships
-				getCurrentShips(aisMessage);
+				// getCurrentShips(aisMessage);
 			}
 		}
 	});
@@ -112,18 +107,6 @@ async function aisStream(url, apiKey) {
 		console.log('WebSocket connection closed.');
 	});
 }
-
-// // function to close websocket after xxx minutes
-// function closeWebSocketAfterMinutes(ws, minutes) {
-// 	// convert minutes to ms
-// 	const ms = minutes * 60 * 1000;
-
-// 	// set a timeout to close websocket
-// 	setTimeout(() => {
-// 		ws.close();
-// 		console.log(`WebSocket closed after ${minutes} minute(s).`);
-// 	}, ms);
-// }
 
 // setup logging
 async function createLogger(logfile, level) {
@@ -209,19 +192,19 @@ async function getShipStaticData(aisMessage) {
 }
 
 // unused so far...
-async function checkShipDeparture(aisMessage) {
-	// course over ground (direction of movement)
-	let cog = aisMessage.Message.PositionReport.Cog;
-	// speed over ground (<1 seems to be 'stopped')
-	let sog = aisMessage.Message.PositionReport.Sog;
-	// https://datalastic.com/blog/ais-navigational-status/
-	let navstat = aisMessage.Message.PositionReport.NavigationalStatus;
+// async function checkShipDeparture(aisMessage) {
+// 	// course over ground (direction of movement)
+// 	let cog = aisMessage.Message.PositionReport.Cog;
+// 	// speed over ground (<1 seems to be 'stopped')
+// 	let sog = aisMessage.Message.PositionReport.Sog;
+// 	// https://datalastic.com/blog/ais-navigational-status/
+// 	let navstat = aisMessage.Message.PositionReport.NavigationalStatus;
 	
-	if (navstat === 0 && cog > 200 && cog < 338 && sog > 1) {
-		console.log('headed west!')
-		console.log(aisMessage);
-	}
-}
+// 	if (navstat === 0 && cog > 200 && cog < 338 && sog > 1) {
+// 		console.log('headed west!')
+// 		console.log(aisMessage);
+// 	}
+// }
 
 // check if ship lat/lon is inside one of the defined terminal zones
 function getTerminal(data) {
@@ -249,8 +232,12 @@ function updateLookupTable(data) {
 	ships_list.push(lookup);
 }
 
-function init(url, apiKey) {
-	console.log(new Date());
+async function init(url, apiKey) {
+	// setup logging
+	logger = await createLogger(static_ships_log_filepath, 'info');
+
+	console.log(`Starting new script run: ${new Date()}`);
+	logger.info(`Starting new script run: ${new Date()}`);
 
 	// start web socket to aisstream
 	aisStream(url, apiKey);
@@ -258,18 +245,17 @@ function init(url, apiKey) {
 	// convert runtime to ms
 	const streamDuration = (runtime * 60) * 1000;
 
-	console.log(streamDuration)
-
 	// close the stream after `streamDuration` minutes
-// 	setTimeout(() => {
-// 		console.log('Closing stream');
-// 		// close websocket
-// 		socket.close();
+	setTimeout(() => {
+		// close websocket
+		socket.close();
 
-// 		console.log(new Date())
-// 		// exit script
-// 		process.exit(0);
-// 	}, streamDuration);
+		console.log(`Shutting down script run: ${new Date()}`);
+		logger.info(`Shutting down script run: ${new Date()}`);
+		
+		// exit script
+		process.exit(0);
+	}, streamDuration);
 }
 
 // kick isht off!!!
