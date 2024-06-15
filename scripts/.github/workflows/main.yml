@@ -5,7 +5,7 @@ name: Burrard_Inlet_tanker_tracker
 # Controls when the workflow will run
 on:
   # schedule:
-  # - cron: "0 * * * *" #run hourly. https://crontab.guru/examples.html
+  - cron: "0 * * * *" #run hourly. https://crontab.guru/examples.html
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
