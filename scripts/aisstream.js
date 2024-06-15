@@ -12,14 +12,15 @@ import current_ships from '../data/current-ships.json' assert { type: 'json' };
 // const ships_data = require('../data/ships-data.json');
 
 // VARS
-let logger;
+let logger, socket;
 let ships_list_lookup = [];
 let current_ships_cache = [];
 let ebay_poly, suncor_poly, westridge_poly;
+
+const runtime = 45; // how long websocket will stay open, in minutes
 const current_ships_interval = 5000;
-// const current_ships_interval = 300000;
-const ship_types = [70, 80]; // 80 === tanker, 70 === cargo
-// https://www.perplexity.ai/search/a9a7823d-a845-4949-906c-3a006867cbf0
+// https://www.navcen.uscg.gov/sites/default/files/pdf/AIS/AISGuide.pdf
+const ship_types = [70, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
 
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
@@ -28,7 +29,7 @@ const current_ships_filepath = './data/current-ships';
 const static_ships_log_filepath = './logs/static-ships.log';
 
 async function aisStream(url, apiKey) {
-	const socket = new WebSocket(url);
+	socket = new WebSocket(url);
 
 	// setup logging
 	logger = await createLogger(static_ships_log_filepath, 'info');
@@ -89,6 +90,8 @@ async function aisStream(url, apiKey) {
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
 			console.log(aisMessage)
+
+			console.log(ship_types.includes(aisMessage.Message.ShipStaticData.Type))
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				getShipStaticData(aisMessage);
@@ -100,11 +103,27 @@ async function aisStream(url, apiKey) {
 			console.log(aisMessage)
 			if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
 				// cache currently moored ships
-				// getCurrentShips(aisMessage);
+				getCurrentShips(aisMessage);
 			}
 		}
 	});
+
+	socket.addEventListener('close', () => {
+		console.log('WebSocket connection closed.');
+	});
 }
+
+// // function to close websocket after xxx minutes
+// function closeWebSocketAfterMinutes(ws, minutes) {
+// 	// convert minutes to ms
+// 	const ms = minutes * 60 * 1000;
+
+// 	// set a timeout to close websocket
+// 	setTimeout(() => {
+// 		ws.close();
+// 		console.log(`WebSocket closed after ${minutes} minute(s).`);
+// 	}, ms);
+// }
 
 // setup logging
 async function createLogger(logfile, level) {
@@ -230,6 +249,29 @@ function updateLookupTable(data) {
 	ships_list.push(lookup);
 }
 
+function init(url, apiKey) {
+	console.log(new Date());
+
+	// start web socket to aisstream
+	aisStream(url, apiKey);
+
+	// convert runtime to ms
+	const streamDuration = (runtime * 60) * 1000;
+
+	console.log(streamDuration)
+
+	// close the stream after `streamDuration` minutes
+// 	setTimeout(() => {
+// 		console.log('Closing stream');
+// 		// close websocket
+// 		socket.close();
+
+// 		console.log(new Date())
+// 		// exit script
+// 		process.exit(0);
+// 	}, streamDuration);
+}
+
 // kick isht off!!!
-export default aisStream;
+export default { init };
 

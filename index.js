@@ -6,7 +6,7 @@ const aisWs = 'wss://stream.aisstream.io/v0/stream'; // AISStream websocket
 
 async function init() {
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
-	aisStream(aisWs, aisApiKey);
+	aisStream.init(aisWs, aisApiKey);
 	// openship(os_url);
 }
 
