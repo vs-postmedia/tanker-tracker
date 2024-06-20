@@ -17,7 +17,7 @@ let ships_list_lookup = [];
 let current_ships_cache = [];
 let ebay_poly, suncor_poly, westridge_poly;
 
-const runtime = 50; // how long websocket will stay open, in minutes
+const runtime = 1; // how long websocket will stay open, in minutes
 const current_ships_interval = 5000;
 // https://www.navcen.uscg.gov/sites/default/files/pdf/AIS/AISGuide.pdf
 const ship_types = [70, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
