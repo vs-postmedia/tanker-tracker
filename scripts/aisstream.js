@@ -2,7 +2,8 @@ import WebSocket from 'ws';
 import winston from 'winston';
 import saveData from './save-data.js';
 import { point, polygon } from '@turf/helpers';
-// import generateSummaryStats from './generate-summary-stats.js';
+import { postToTwitter } from './post-online.js';
+import generateSummaryStats from './generate-summary-stats.js';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 
 // DATA
@@ -20,7 +21,8 @@ let ebay_poly, suncor_poly, westridge_poly;
 const runtime = 45; // how long websocket will stay open, in minutes
 const current_ships_interval = 5000;
 // https://www.navcen.uscg.gov/sites/default/files/pdf/AIS/AISGuide.pdf
-const ship_types = [70, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
+const ship_types = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker
+// const ship_types = [70, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
 
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
@@ -32,13 +34,12 @@ async function aisStream(url, apiKey) {
 	socket = new WebSocket(url);
 
 	// create polygons for terminals
-	ebay_poly = polygon([zones.englishbay]);
-	suncor_poly = polygon([zones.suncor]);
+	// ebay_poly = polygon([zones.englishbay]);
+	// suncor_poly = polygon([zones.suncor]);
 	westridge_poly = polygon([zones.westridge]);
 
 	// run summary stats
-	// generateSummaryStats();
-	console.log()
+	generateSummaryStats();
 
 	socket.addEventListener('open', _ => {
 		// setup websocket request
@@ -64,7 +65,7 @@ async function aisStream(url, apiKey) {
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
 
-		console.log(JSON.stringify(subscriptionMsg));
+		// console.log(JSON.stringify(subscriptionMsg));
 		
 		// open AISstream websocket
 		socket.send(JSON.stringify(subscriptionMsg));
@@ -77,7 +78,7 @@ async function aisStream(url, apiKey) {
 
 	// error msg
 	socket.addEventListener('error', (e) => {
-		console.log(e);
+		console.error(e);
 		logger.err(`Socket setup failed: ${JSON.parse(e)}`);
 	});
 
@@ -86,7 +87,7 @@ async function aisStream(url, apiKey) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-			console.log(aisMessage)
+			// console.log(aisMessage)
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				getShipStaticData(aisMessage);
@@ -95,10 +96,10 @@ async function aisStream(url, apiKey) {
 
 		// check for moored or moving ships
 		if (aisMessage.MessageType === 'PositionReport') {
-			console.log(aisMessage)
+			// console.log(aisMessage)
 			if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
 				// cache currently moored ships
-				// getCurrentShips(aisMessage);
+				getCurrentShips(aisMessage);
 			}
 		}
 	});
@@ -125,10 +126,9 @@ async function createLogger(logfile, level) {
 
 // get currentShipPositions
 async function getCurrentShips(aisMessage) {
-	let data = aisMessage.Message.PositionReport;
+	let data = aisMessage.MetaData;
 
-	console.log('getCurrentShips')
-	// logger.info('getCurrentShips')
+	console.log('getCurrentShips');
 	console.log(data)
 
 	// check navstatus to see if ship is moored or at anchor
@@ -136,16 +136,15 @@ async function getCurrentShips(aisMessage) {
 		// get mmsi number
 		let mmsi = aisMessage.MetaData.MMSI;
 
-		console.log(`MMSI: ${mmsi}`)
-		// console.log(current_ships_cache.find(d => aisMessage.MetaData.MMSI === mmsi))
-
 		// if mmsi isn't cached as currently moored, do so.
 		if (current_ships_cache.find(d => d.MMSI === mmsi) === undefined) {
 			// determine terminal
 			data.terminal = getTerminal(aisMessage);
-			current_ships_cache.push(data);
-
-			console.log(current_ships_cache)
+			data.ShipName = data.ShipName.trim();
+			current_ships_cache.push(mmsi);
+			
+			// post announcement to social media
+			// postToTwitter(data);
 		}
 	}
 }
