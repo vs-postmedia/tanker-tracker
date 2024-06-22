@@ -39,7 +39,7 @@ async function aisStream(url, apiKey) {
 	westridge_poly = polygon([zones.westridge]);
 
 	// run summary stats
-	generateSummaryStats();
+	// generateSummaryStats();
 
 	socket.addEventListener('open', _ => {
 		// setup websocket request
