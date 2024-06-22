@@ -37,6 +37,8 @@ jobs:
 
       # Runs scraper
       - name: Run the scraper
+        env:
+          API_KEY_AISSTREAM: ${{ secrets.API_KEY_AISSTREAM }}
         run: |
           node index.js
 
