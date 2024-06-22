@@ -1,7 +1,5 @@
 import fs from 'fs';
-import { Parser } from '@json2csv/plainjs';
-// const fs = require('fs');
-// let Parser = require('@json2csv/plainjs').Parser;
+import Papa from 'papaparse';
 
 async function saveData(data, filepath, format, data_dir) {
 
@@ -15,12 +13,11 @@ async function saveData(data, filepath, format, data_dir) {
 		}
 	} else {
 		try {
-			// create a json parser
-			const parser = new Parser({ header: false });
 			// covert to csv and append line to file
 			fs.appendFile(
 				`${filepath}.${format}`, 
-				`\n${parser.parse(data)}`, 
+				// `\n${parser.parse(data)}`, 
+				`\n${Papa.unparse(data, { header: false })}`,
 				{encoding: 'utf8' }, 
 				(err) => {
 					if (err) {
@@ -37,4 +34,3 @@ async function saveData(data, filepath, format, data_dir) {
 }
 
 export default saveData;
-// module.exports = saveData;
