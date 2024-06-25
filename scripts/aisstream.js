@@ -18,7 +18,7 @@ let ships_list_lookup = [];
 let current_ships_cache = [];
 let ebay_poly, suncor_poly, westridge_poly;
 
-const runtime = 15; // how long websocket will stay open, in minutes
+const runtime = 30; // how long websocket will stay open, in minutes
 const current_ships_interval = 5000;
 // https://www.navcen.uscg.gov/sites/default/files/pdf/AIS/AISGuide.pdf
 const ship_types = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker
@@ -87,20 +87,20 @@ async function aisStream(url, apiKey) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-			// console.log(aisMessage)
+			console.log(aisMessage.Message.ShipStaticData.Type)
 			// check ship type
-			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
+			// if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				getShipStaticData(aisMessage);
-			}
+			// }
 		}
 
 		// check for moored or moving ships
 		if (aisMessage.MessageType === 'PositionReport') {
-			// console.log(aisMessage)
-			if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
+			console.log(aisMessage.Message.PositionReport.Type) // <-- Type doesn't exist
+			// if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
 				// cache currently moored ships
-				// getCurrentShips(aisMessage);
-			}
+				getCurrentShips(aisMessage);
+			// }
 		}
 	});
 
@@ -140,6 +140,7 @@ async function getCurrentShips(aisMessage) {
 	let data = aisMessage.MetaData;
 
 	console.log(`getCurrentShips: ${data.ShipName}`);
+	console.log(aisMessage)
 
 	// check navstatus to see if ship is moored or at anchor
 	// https://datalastic.com/blog/ais-navigational-status/
