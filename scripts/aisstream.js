@@ -137,7 +137,7 @@ async function getCurrentShips(aisMessage) {
 	let data = aisMessage.MetaData;
 
 	console.log(`getCurrentShips: ${data.ShipName}`);
-	console.log(aisMessage)
+	// console.log(aisMessage)
 
 	// check navstatus to see if ship is moored or at anchor
 	// https://datalastic.com/blog/ais-navigational-status/
@@ -173,7 +173,10 @@ async function getShipStaticData(aisMessage) {
 	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
 	let new_date = ships_list.some(d => d.date.slice(0, -3) === data.date.slice(0, -3));
 
-	if (new_imo === false || new_imo === true && new_date === true) {
+	console.log(`New IMO: ${new_imo}`)
+	console.log(`New Date; ${new_date}, ${data.date.slice(0, -3)}`)
+
+	if (new_imo === false || new_imo === true && new_date === false) {
 		logger.info(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings

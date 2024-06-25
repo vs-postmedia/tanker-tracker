@@ -1,20 +1,29 @@
+import fs from 'fs';
+import Papa from 'papaparse';
+import saveData from './save-data.js';
 import { tidy, count, groupBy, n, nDistinct, summarize } from '@tidyjs/tidy';
 
-// DATA
-import ships_data from '../data/ships-data.json' assert { type: 'json'};
-// const ships_data = require('../data/ships-data.json');
+// VARS
+let shipsData;
+const shipdataFilepath = './data/ships-data.csv';
+const summaryStatsFilepath = './data/summary-stats';
 
 // FUNCTIONS
-async function generateSummaryStats() {
+async function generateSummaryStats(data) {
     console.log('Summary stats!')
-
+    
     // total ship count
-    const total_ships = ships_data.length;
-
+    const shipsTotal = data.length;
+    
+    // year-month of ship arrival
+    data.forEach(d => {
+        d.year_month = d.date.slice(0, -3);
+    });
+        
     // ship count by month
-    const monthly_ships = tidy(
-        ships_data,
-        groupBy('date', [
+    const shipsMonthly = tidy(
+        data,
+        groupBy('year_month', [
             summarize({
                 total: n()
             })
@@ -22,8 +31,8 @@ async function generateSummaryStats() {
     );
 
     // ships by IMO
-    const unique_ships = tidy(
-        ships_data,
+    const shipsUnique = tidy(
+        data,
         groupBy('ImoNumber', [
             summarize({
                 count: nDistinct('ImoNumber')
@@ -33,11 +42,25 @@ async function generateSummaryStats() {
     );
 
 
-    console.log(total_ships)
-    console.log(monthly_ships)
-    console.log(unique_ships)
+    console.log(shipsTotal)
+    console.log(shipsMonthly)
+    console.log(shipsUnique)
+
+    saveData(shipsUnique, summaryStatsFilepath, 'csv');
 }
 
+async function init() {
+    const file = fs.readFileSync(shipdataFilepath, 'utf8');
 
-export default generateSummaryStats;
-// module.exports = init;
+    Papa.parse(file, {
+        complete: (res) => {
+            console.log(res)
+
+            shipsData = res;
+            generateSummaryStats(shipsData.data)
+        },
+        delimiter: ',',
+        header: true
+    });
+}
+export default init;
