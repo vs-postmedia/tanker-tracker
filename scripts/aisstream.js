@@ -87,20 +87,17 @@ async function aisStream(url, apiKey) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-			console.log(aisMessage.Message.ShipStaticData.Type)
+			// console.log(aisMessage.Message.ShipStaticData.Type)
 			// check ship type
-			// if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
+			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				getShipStaticData(aisMessage);
-			// }
+			}
 		}
 
 		// check for moored or moving ships
 		if (aisMessage.MessageType === 'PositionReport') {
-			console.log(aisMessage.Message.PositionReport.Type) // <-- Type doesn't exist
-			// if (!ship_types.includes(aisMessage.Message.PositionReport.Type)) {
-				// cache currently moored ships
-				getCurrentShips(aisMessage);
-			// }
+			// cache currently moored ships
+			getCurrentShips(aisMessage);
 		}
 	});
 
@@ -176,7 +173,7 @@ async function getShipStaticData(aisMessage) {
 	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
 	let new_date = ships_list.some(d => d.date.slice(0, -3) === data.date.slice(0, -3));
 
-	if (new_imo === false || new_imo === true && new_date === false) {
+	if (new_imo === false || new_imo === true && new_date === true) {
 		logger.info(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
