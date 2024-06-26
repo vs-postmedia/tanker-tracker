@@ -9,16 +9,26 @@ const shipdataFilepath = './data/ships-data.csv';
 
 // FUNCTIONS
 async function generateSummaryStats(data) {
-    console.log('Summary stats!')
-    
-    // total ship count
-    const shipsTotal = data.length;
+    // console.log('Summary stats!')
     
     // get year/month date of ship arrivals
     data.forEach(d => {
         d.year_month = d.date.slice(0, -3);
     });
-        
+
+    // total ship count
+    const shipsTotal = data.length;
+
+    // get ship count by day
+    const shipsDaily = tidy(
+        data,
+        groupBy('date', [
+            summarize({
+                total: n()
+            })
+        ])
+    );
+     
     // get ship count by month
     const shipsMonthly = tidy(
         data,
@@ -40,13 +50,14 @@ async function generateSummaryStats(data) {
         )
     );
 
-    // LOG results
-    console.log(shipsTotal)
-    console.log(shipsMonthly)
-    console.log(shipsUnique)
+    // log results
+    // console.log(shipsTotal)
+    console.log(`SUMMARY STATS: ${JSON.stringify(shipsMonthly)}`)
+    // console.log(shipsUnique)
 
     // save summary data files
     saveData(shipsUnique, { filepath: `${directory}ships-unique`, format: 'csv', append: false });
+    saveData(shipsDaily, { filepath: `${directory}ships-daily`, format: 'csv', append: false });
     saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
 }
 
@@ -57,8 +68,6 @@ async function init() {
     // convert to json
     Papa.parse(file, {
         complete: (response) => {
-            console.log(response)
-
             // NEEDS ERROR LOG HERE
 
             // run summary stats

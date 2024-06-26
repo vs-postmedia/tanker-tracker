@@ -38,9 +38,6 @@ async function aisStream(url, apiKey, bbox) {
 	westridge_poly = polygon([zones.westridge]);
 	// ebay_poly = polygon([zones.englishbay]);
 
-	// run summary stats
-	generateSummaryStats();
-
 
 	socket.addEventListener('open', _ => {
 		// setup websocket request
