@@ -30,37 +30,31 @@ const ships_lookup_filepath = './data/ships-list';
 const current_ships_filepath = './data/current-ships';
 const static_ships_log_filepath = './logs/static-ships.log';
 
-async function aisStream(url, apiKey) {
+async function aisStream(url, apiKey, bbox) {
 	socket = new WebSocket(url);
 
-	// create polygons for terminals
-	// ebay_poly = polygon([zones.englishbay]);
-	// suncor_poly = polygon([zones.suncor]);
+	// create polygons for terminal
+	suncor_poly = polygon([zones.suncor]);
 	westridge_poly = polygon([zones.westridge]);
+	// ebay_poly = polygon([zones.englishbay]);
 
 	// run summary stats
 	// generateSummaryStats();
+
 
 	socket.addEventListener('open', _ => {
 		// setup websocket request
 		const subscriptionMsg = {
 			APIkey: apiKey,
 			BoundingBoxes: [
-				[				
-					// English Bay
-					// zones.englishbay[0], zones.englishbay[2]
-					
-					// Suncor Terminal
-					// zones.suncor[0], zones.suncor[2]
-					// [zones.suncor[0], zones.suncor[1], zones.suncor[2], zones.suncor[3]],
+				// Westridge Terminal
+				[zones.westridge[0], zones.westridge[2]],
+				
+				// Suncor Terminal
+				[zones.suncor[0], zones.suncor[2]]
 
-					// Westridge Terminal
-					zones.westridge[0], zones.westridge[2]
-					// zones.westridge[0], zones.westridge[1], zones.westridge[2], zones.westridge[3]
-
-					// westridge & suncor
-					// zones.westridge[0], zones.suncor[1], zones.suncor[2], zones.westridge[3]
-				]
+				// English Bay
+				// zones.englishbay[0], zones.englishbay[2]
 			],
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
@@ -75,13 +69,19 @@ async function aisStream(url, apiKey) {
 			// saveData(current_ships_cache, current_ships_filepath, 'json');
 		}, current_ships_interval);
 	});
-
+	
+	// on socket close
+	socket.addEventListener('close', (e) => {
+		console.log('WebSocket connection closed.');
+		console.log(e.code)
+	});
 	// error msg
 	socket.addEventListener('error', (e) => {
-		console.error(e);
+		console.log(e);
 		logger.err(`Socket setup failed: ${JSON.parse(e)}`);
 	});
 
+	// on message rx
 	socket.addEventListener('message', (e) => {
 		let aisMessage = JSON.parse(e.data);
 
@@ -101,9 +101,6 @@ async function aisStream(url, apiKey) {
 		}
 	});
 
-	socket.addEventListener('close', () => {
-		console.log('WebSocket connection closed.');
-	});
 }
 
 // setup logging
@@ -173,8 +170,8 @@ async function getShipStaticData(aisMessage) {
 	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
 	let new_date = ships_list.some(d => d.date.slice(0, -3) === data.date.slice(0, -3));
 
-	console.log(`New IMO: ${new_imo}`)
-	console.log(`New Date; ${new_date}, ${data.date.slice(0, -3)}`)
+	console.log(`IMO exists: ${new_imo}`)
+	console.log(`Date exists; ${new_date}, ${data.date.slice(0, -3)}`)
 
 	if (new_imo === false || new_imo === true && new_date === false) {
 		logger.info(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
@@ -228,11 +225,15 @@ function getTerminal(data) {
 		terminal = 'Westridge';
 	} else if (booleanPointInPolygon(point, suncor_poly)) {
 		terminal = 'Suncor';
-	} else if (booleanPointInPolygon(point, ebay_poly)) {
-		terminal = 'English Bay'
+	// } else if (booleanPointInPolygon(point, ebay_poly)) {
+	// 	terminal = 'English Bay'
 	}
 
-	if (terminal == undefined) console.log(`Terminal undefined: ${data}`)
+	if (terminal == undefined) {
+		console.log(`Terminal undefined:`)
+		console.log(point)
+		console.log(suncor_poly)
+	}
 
 	return terminal;
 }
@@ -243,7 +244,7 @@ function updateLookupTable(data) {
 	ships_list.push(lookup);
 }
 
-async function init(url, apiKey) {
+async function init(url, apiKey, bbox) {
 	// setup logging
 	logger = await createLogger(static_ships_log_filepath, 'info');
 
@@ -251,7 +252,7 @@ async function init(url, apiKey) {
 	logger.info(`Starting new script run: ${new Date()}`);
 
 	// start web socket to aisstream
-	aisStream(url, apiKey);
+	aisStream(url, apiKey, bbox);
 
 	// convert runtime to ms
 	const streamDuration = (runtime * 60) * 1000;
