@@ -4,9 +4,8 @@ import saveData from './save-data.js';
 import { tidy, count, groupBy, n, nDistinct, summarize } from '@tidyjs/tidy';
 
 // VARS
-let shipsData;
+const directory = './data/';
 const shipdataFilepath = './data/ships-data.csv';
-const summaryStatsFilepath = './data/summary-stats';
 
 // FUNCTIONS
 async function generateSummaryStats(data) {
@@ -15,12 +14,12 @@ async function generateSummaryStats(data) {
     // total ship count
     const shipsTotal = data.length;
     
-    // year-month of ship arrival
+    // get year/month date of ship arrivals
     data.forEach(d => {
         d.year_month = d.date.slice(0, -3);
     });
         
-    // ship count by month
+    // get ship count by month
     const shipsMonthly = tidy(
         data,
         groupBy('year_month', [
@@ -30,7 +29,7 @@ async function generateSummaryStats(data) {
         ])
     );
 
-    // ships by IMO
+    // get ship count by by IMO
     const shipsUnique = tidy(
         data,
         groupBy('ImoNumber', [
@@ -41,23 +40,29 @@ async function generateSummaryStats(data) {
         )
     );
 
-
+    // LOG results
     console.log(shipsTotal)
     console.log(shipsMonthly)
     console.log(shipsUnique)
 
-    saveData(shipsUnique, summaryStatsFilepath, 'csv');
+    // save summary data files
+    saveData(shipsUnique, { filepath: `${directory}ships-unique`, format: 'csv', append: false });
+    saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
 }
 
 async function init() {
+    // read in the master csvfile
     const file = fs.readFileSync(shipdataFilepath, 'utf8');
 
+    // convert to json
     Papa.parse(file, {
-        complete: (res) => {
-            console.log(res)
+        complete: (response) => {
+            console.log(response)
 
-            shipsData = res;
-            generateSummaryStats(shipsData.data)
+            // NEEDS ERROR LOG HERE
+
+            // run summary stats
+            generateSummaryStats(response.data)
         },
         delimiter: ',',
         header: true
