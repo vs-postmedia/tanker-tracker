@@ -8,7 +8,7 @@ async function init() {
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
 	
 	// open streams
-	aisStream.init(aisWs, aisApiKey, zones.westridge);
+	aisStream.init(aisWs, aisApiKey);
 	// openship(os_url);
 }
 
