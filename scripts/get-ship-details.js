@@ -1,10 +1,11 @@
 import 'dotenv/config';
 import puppeteer from 'puppeteer';
-
+import saveData from './save-data.js';
 
 // data
 const emailId = 'home-login';
 const passId = 'home-password';
+const inspectionDataFilepath = './data/inspection-data';
 const equasisUrl = 'https://www.equasis.org/EquasisWeb/public/HomePage?fs=HomePage';
 const userAgent =
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
@@ -17,14 +18,16 @@ async function init(data) {
     const password = process.env.PASS_EQUASIS;
 
     // search the site
-    searchEquasis(data, password);
+    const inspectionData = await searchEquasis(data, password);
+    console.log(inspectionData);
+    saveData(inspectionData, inspectionDataFilepath, 'csv');
 }
 
 async function searchEquasis(data, password) {
     // Launch the browser and open a new blank page
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
-    await page.setUserAgent(userAgent);
+    // await page.setUserAgent(userAgent);
     
     // Navigate the page to a URL
     await page.goto(equasisUrl, {waitUntil: 'networkidle2'});
@@ -35,10 +38,10 @@ async function searchEquasis(data, password) {
     // Wait for login elements to appear on the page.
     await page.waitForSelector('#home-login');
 
-    // Type a username into the "username" input field with a 100ms delay between key presses.
+    // Type a username into the "username" input field with a delay between key presses.
     await page.type('#home-login', 'ngriffiths@postmedia.com', { delay: 50 });
 
-    // Type a password into the "password" input field with a 100ms delay between key presses.
+    // Type a password into the "password" input field with a delay between key presses.
     await page.type('#home-password', password, { delay: 50 });
 
     // Click the login button
@@ -47,7 +50,7 @@ async function searchEquasis(data, password) {
     // Wait for search box to appear
     await page.waitForSelector('#P_ENTREE_HOME');
 
-    // Type an IMO number into the "imo" input field with a 100ms delay between key presses.
+    // Type an IMO number into the "imo" input field with a delay between key presses.
     await page.type('#P_ENTREE_HOME', data.ImoNumber.toString(), { delay: 75 });
 
     // Click the search button
@@ -59,25 +62,33 @@ async function searchEquasis(data, password) {
     await page.click(imoSelector);
 
     // find & click the inspections tab
-    const inspectionSelector = 'button[onclick*="ShipInspection?fs=ShipInfo"]';
-    await page.waitForSelector(inspectionSelector);
-    await page.click(inspectionSelector);
+    try {
+        const inspectionSelector = 'button[onclick*="ShipInspection?fs=ShipInfo"]';
+        await page.waitForSelector(inspectionSelector);
+        await Promise.all([
+            await page.click(inspectionSelector),
+            
+            // don't understand why this generates an error? but works as long as error is caught
+            page.waitForNavigation({ timeout: 5000 })
+        ]);
+    } catch (error) {
+        // console.log(error);
+    }
 
     // collect inspection data
-    // const details = await getShipDetails(page, data.ImoNumber);
-    const inspectionData = await getInspectionData(page, data.ImoNumber);
+    let inspectionData = await getInspectionData(page, data.ImoNumber);
+    // drop header row
+    inspectionData.shift();
 
-    console.log(inspectionData)
-}
-
-// UNUSED
-async function getShipDetails(page) {
-    const details = await page.evaluate(() => {
-        const infoElem = document.querySelector('.info-details .access-body')
-    })
+    // console.log(inspectionData)
+    return inspectionData;
 }
 
 async function getInspectionData(page, imo) {
+    // await page.waitForSelector('.tableLSDD');
+    // await page.waitForNavigation({ timeout: 10000 });
+    // await page.waitForNavigation({ waitUntil: 'domcontentloaded' }); 
+
     const inspectionData = await page.evaluate(() => {
         let rowCache = [];
         const table = document.querySelector('.tableLSDD');
@@ -88,21 +99,29 @@ async function getInspectionData(page, imo) {
             const cells = Array.from(row.querySelectorAll('td, th'));
             const results = cells.map(cell => cell.textContent.trim());
 
-            // console.log(results)
-
             // backfill data for columns that take up two rows
-            if (results.length > 9) {
+            if (results.length > 5) {
                 finalResults = results;
                 rowCache = results.slice(0, 4);
             } else {
+                // console.log(`ROW CACHE: ${rowCache}`)
                 finalResults = [...rowCache, ...results];
             }
+            console.log(finalResults)
+
+            // does ship have deficiencies?
+            // if (finalResults[7].length > 0) {
+            //     // follow link to get deficiency details
+
+            // } else {
+            //     // fill with NAs
+            // }
 
             return finalResults
         });
     });
 
-    // prepend IMO number
+    // prepend IMO number to each row
     inspectionData.forEach((d, i) => {
         if (i > 0) {
             d.unshift(imo)
