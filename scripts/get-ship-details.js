@@ -2,7 +2,8 @@ import 'dotenv/config';
 import puppeteer from 'puppeteer';
 import saveData from './save-data.js';
 
-// data
+// VARS
+let browser;
 const emailId = 'home-login';
 const passId = 'home-password';
 const inspectionDataFilepath = './data/inspection-data';
@@ -14,27 +15,37 @@ const userAgent =
 async function init(data) {
     console.log(data)
 
-    // get the password
+    // get equasis password
     const password = process.env.PASS_EQUASIS;
 
+    // initial browser setup
+    const page = await setupPage(equasisUrl);
+
     // search the site
-    const inspectionData = await searchEquasis(data, password);
+    const inspectionData = await searchEquasis(page, data, password);
     console.log(inspectionData);
     saveData(inspectionData, inspectionDataFilepath, 'csv');
+
+    // close browser
+    // await browser.close();
 }
 
-async function searchEquasis(data, password) {
+async function setupPage(url) {
     // Launch the browser and open a new blank page
-    const browser = await puppeteer.launch({ headless: false });
+    browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
-    // await page.setUserAgent(userAgent);
-    
+    await page.setUserAgent(userAgent);
+
     // Navigate the page to a URL
-    await page.goto(equasisUrl, {waitUntil: 'networkidle2'});
+    await page.goto(url, {waitUntil: 'networkidle2'});
 
     // Set screen size.
     await page.setViewport({width: 1080, height: 1024});
 
+    return page;
+}
+
+async function searchEquasis(page, data, password) {
     // Wait for login elements to appear on the page.
     await page.waitForSelector('#home-login');
 
@@ -85,9 +96,6 @@ async function searchEquasis(data, password) {
 }
 
 async function getInspectionData(page, imo) {
-    // await page.waitForSelector('.tableLSDD');
-    // await page.waitForNavigation({ timeout: 10000 });
-    // await page.waitForNavigation({ waitUntil: 'domcontentloaded' }); 
 
     const inspectionData = await page.evaluate(() => {
         let rowCache = [];
@@ -110,12 +118,12 @@ async function getInspectionData(page, imo) {
             console.log(finalResults)
 
             // does ship have deficiencies?
-            // if (finalResults[7].length > 0) {
-            //     // follow link to get deficiency details
+            if (finalResults[7].length > 0) {
+                // follow link to get deficiency details
 
-            // } else {
-            //     // fill with NAs
-            // }
+            } else {
+                // fill with NAs
+            }
 
             return finalResults
         });
