@@ -2,8 +2,8 @@ import WebSocket from 'ws';
 import winston from 'winston';
 import saveData from './save-data.js';
 import { point, polygon } from '@turf/helpers';
+// import getShipDetails from './get-ship-details';
 // import { postToTwitter } from './post-online.js';
-// import generateSummaryStats from './generate-summary-stats.js';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 
 // DATA

@@ -24,7 +24,7 @@ async function init(data) {
     // search the site
     const inspectionData = await searchEquasis(page, data, password);
     console.log(inspectionData);
-    saveData(inspectionData, inspectionDataFilepath, 'csv');
+    // saveData(inspectionData, inspectionDataFilepath, 'csv');
 
     // close browser
     // await browser.close();
@@ -105,6 +105,8 @@ async function getInspectionData(page, imo) {
         return rows.map(row => {
             let finalResults = [];
             const cells = Array.from(row.querySelectorAll('td, th'));
+
+            console.log(cells)
             const results = cells.map(cell => cell.textContent.trim());
 
             // backfill data for columns that take up two rows
@@ -115,12 +117,12 @@ async function getInspectionData(page, imo) {
                 // console.log(`ROW CACHE: ${rowCache}`)
                 finalResults = [...rowCache, ...results];
             }
-            console.log(finalResults)
+            // console.log(finalResults)
 
             // does ship have deficiencies?
             if (finalResults[7].length > 0) {
                 // follow link to get deficiency details
-
+                console.log(finalResults[7])
             } else {
                 // fill with NAs
             }
