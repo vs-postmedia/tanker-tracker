@@ -97,7 +97,7 @@ async function aisStream(url, apiKey, bbox) {
 		// check for moored or moving ships
 		if (aisMessage.MessageType === 'PositionReport') {
 			// cache currently moored ships
-			// getCurrentShips(aisMessage);
+			getCurrentShips(aisMessage);
 		}
 	});
 
