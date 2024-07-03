@@ -97,10 +97,17 @@ async function aisStream(url, apiKey, bbox) {
 		// check for moored or moving ships
 		if (aisMessage.MessageType === 'PositionReport') {
 			// cache currently moored ships
-			getCurrentShips(aisMessage);
+			// getCurrentShips(aisMessage);
 		}
 	});
 
+}
+
+
+// calculate length/width of ship
+function calculateShipDimensions(data) {
+	// console.log(data)
+	return `${data.A + data.B}:${data.C + data.D}`;
 }
 
 // setup logging
@@ -134,7 +141,7 @@ async function getCurrentShips(aisMessage) {
 	let data = aisMessage.MetaData;
 
 	console.log(`getCurrentShips: ${data.ShipName}`);
-	// console.log(aisMessage)
+	// console.log(data)
 
 	// check navstatus to see if ship is moored or at anchor
 	// https://datalastic.com/blog/ais-navigational-status/
@@ -179,6 +186,8 @@ async function getShipStaticData(aisMessage) {
 		// trim whitespace from strings
 		data.CallSign = data.CallSign.trim();
 		data.Destination = data.Destination.trim();
+		data.Dimension = calculateShipDimensions(data.Dimension);
+		data.Eta = null;
 		data.Name = data.Name.trim();
 		// get mmsi & arrival date
 		data.MMSI = aisMessage.MetaData.MMSI;
