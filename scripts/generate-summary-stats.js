@@ -1,7 +1,8 @@
 import fs from 'fs';
 import Papa from 'papaparse';
+// import { cumsum } from 'd3-array';
 import saveData from './save-data.js';
-import { tidy, count, groupBy, n, nDistinct, summarize } from '@tidyjs/tidy';
+import { tidy, arrange, count, cumsum, groupBy, mutate, mutateWithSummary, n, nDistinct, summarize } from '@tidyjs/tidy';
 
 // VARS
 const directory = './data/';
@@ -19,12 +20,33 @@ async function generateSummaryStats(data) {
     // total ship count
     const shipsTotal = data.length;
 
+    // cumulative ship count
+    // const shipsCumulative = tidy(
+    //     data,
+    //     groupBy(['terminal', 'date'], [
+    //         mutateWithSummary({
+    //             cumulativeSum: cumsum('count')
+    //         })
+    //     ])
+    // );
+
+
     // get ship count by day
     const shipsDaily = tidy(
         data,
-        groupBy('date', [
+        groupBy(['date', 'terminal'], [
             summarize({
                 total: n()
+            })
+        ])
+    );
+
+    // cumulative sums by terminal
+    const shipsCumulative = tidy(
+        shipsDaily,
+        groupBy(['terminal'], [
+            mutateWithSummary({
+                cumulativeCount: cumsum('total')
             })
         ])
     );
@@ -32,7 +54,7 @@ async function generateSummaryStats(data) {
     // get ship count by month
     const shipsMonthly = tidy(
         data,
-        groupBy('year_month', [
+        groupBy(['year_month', 'terminal'], [
             summarize({
                 total: n()
             })
@@ -52,13 +74,15 @@ async function generateSummaryStats(data) {
 
     // log results
     // console.log(shipsTotal)
-    console.log(`SUMMARY STATS: ${JSON.stringify(shipsMonthly)}`)
+    // console.log(`SUMMARY STATS: ${JSON.stringify(shipsDaily)}`)
+    console.log(`SUMMARY STATS: ${JSON.stringify(shipsCumulative)}`)
     // console.log(shipsUnique)
 
     // save summary data files
     saveData(shipsUnique, { filepath: `${directory}ships-unique`, format: 'csv', append: false });
     saveData(shipsDaily, { filepath: `${directory}ships-daily`, format: 'csv', append: false });
     saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
+    saveData(shipsCumulative, { filepath: `${directory}ships-cumulative`, format: 'csv', append: false });
 }
 
 async function init() {
