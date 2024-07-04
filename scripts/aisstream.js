@@ -3,7 +3,7 @@ import winston from 'winston';
 import saveData from './save-data.js';
 import { point, polygon } from '@turf/helpers';
 // import { postToTwitter } from './post-online.js';
-// import generateSummaryStats from './generate-summary-stats.js';
+import generateSummaryStats from './generate-summary-stats.js';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 
 // DATA
@@ -37,9 +37,6 @@ async function aisStream(url, apiKey, bbox) {
 	suncor_poly = polygon([zones.suncor]);
 	westridge_poly = polygon([zones.westridge]);
 	// ebay_poly = polygon([zones.englishbay]);
-
-	// run summary stats
-	// generateSummaryStats();
 
 
 	socket.addEventListener('open', _ => {
@@ -197,13 +194,15 @@ async function getShipStaticData(aisMessage) {
 		
 		// update ships_data array & save full ship data to disk
 		await saveData([data], ships_data_filepath, 'csv');
+		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
 
 		// save data to use for a lookup (using object destructuring)
 		updateLookupTable(data);
 		await saveData(ships_list, ships_lookup_filepath, 'json');
+		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: true })
 
 		// run summary stats
-		// generateSummaryStats(ships_data);
+		generateSummaryStats(ships_data);
 	}
 }
 
