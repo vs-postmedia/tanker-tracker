@@ -14,7 +14,7 @@ async function init() {
 	// openship(os_url);
 
 	// run summary stats
-	generateSummaryStats();
+	// generateSummaryStats();
 }
 
 // kick isht off!!!
