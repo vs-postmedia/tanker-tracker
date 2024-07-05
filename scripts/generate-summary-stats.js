@@ -14,7 +14,8 @@ async function generateSummaryStats(data) {
     
     // get year/month date of ship arrivals
     data.forEach(d => {
-        d.year_month = d.date.slice(0, -3);
+        // better to strip blank lines out of ships-data.csv but...
+        if (d.date !== undefined) { d.year_month = d.date.slice(0, -3); }
     });
 
     // total ship count
