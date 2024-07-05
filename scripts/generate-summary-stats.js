@@ -21,17 +21,6 @@ async function generateSummaryStats(data) {
     // total ship count
     const shipsTotal = data.length;
 
-    // cumulative ship count
-    // const shipsCumulative = tidy(
-    //     data,
-    //     groupBy(['terminal', 'date'], [
-    //         mutateWithSummary({
-    //             cumulativeSum: cumsum('count')
-    //         })
-    //     ])
-    // );
-
-
     // get ship count by day
     const shipsDaily = tidy(
         data,
@@ -76,7 +65,7 @@ async function generateSummaryStats(data) {
     // log results
     // console.log(shipsTotal)
     // console.log(`SUMMARY STATS: ${JSON.stringify(shipsDaily)}`)
-    console.log(`SUMMARY STATS: ${JSON.stringify(shipsCumulative)}`)
+    // console.log(`SUMMARY STATS: ${JSON.stringify(shipsCumulative)}`)
     // console.log(shipsUnique)
 
     // save summary data files
