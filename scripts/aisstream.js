@@ -172,9 +172,6 @@ async function getShipStaticData(aisMessage) {
 
 	// if new IMO or same IMO on new date, update cache 
 	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	let new_date = ships_list
-		.filter(d => d.ImoNumber === data.ImoNumber)
-		.some(d => d.date.slice(0, -3) === data.date.slice(0, -3))
 	let new_date = ships_list.some(d => d.date.slice(0, -3) === data.date.slice(0, -3));
 
 	console.log(`IMO exists: ${new_imo}`)
