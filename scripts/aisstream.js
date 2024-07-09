@@ -84,7 +84,7 @@ async function aisStream(url, apiKey, bbox) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-			console.log(aisMessage.Message.ShipStaticData.Type)
+			console.log(aisMessage.Message.ShipStaticData.Type, aisMessage.Message.ShipStaticData.Name)
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				getShipStaticData(aisMessage);
@@ -94,16 +94,14 @@ async function aisStream(url, apiKey, bbox) {
 		// check for moored or moving ships
 		if (aisMessage.MessageType === 'PositionReport') {
 			// cache currently moored ships
-			getCurrentShips(aisMessage);
+			// getCurrentShips(aisMessage);
 		}
 	});
 
 }
 
-
 // calculate length/width of ship
 function calculateShipDimensions(data) {
-	// console.log(data)
 	return `${data.A + data.B}:${data.C + data.D}`;
 }
 
@@ -122,6 +120,7 @@ async function createLogger(logfile, level) {
 	});
 }
 
+// shut ’er down!
 function exitScript() {
 	// close websocket
 	socket.close();
@@ -162,6 +161,7 @@ async function getCurrentShips(aisMessage) {
 // staticshipdata includes imo, mmsi, ship type, size, etc
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
+	// console.log(data)
 
 	console.log(`${aisMessage.MessageType}: ${aisMessage.MetaData.ShipName}`);
 
@@ -172,12 +172,18 @@ async function getShipStaticData(aisMessage) {
 
 	// if new IMO or same IMO on new date, update cache 
 	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	let new_date = ships_list.some(d => d.date.slice(0, -3) === data.date.slice(0, -3));
+	let new_date = ships_list
+		.filter(d => d.ImoNumber === data.ImoNumber)
+		.some(d => d.date.slice(0, -3) === data.date.slice(0, -3))
+	// let new_date = ships_list.some(d => {
+	// 	console.log(d.date, data.date)
+	// 	return d.date.slice(0, -3) === data.date.slice(0, -3)
+	// });
 
 	console.log(`IMO exists: ${new_imo}`)
 	console.log(`Date exists: ${new_date}, ${data.date.slice(0, -3)}`)
 
-	if (new_imo === false || new_imo === true && new_date === false) {
+	if (new_imo === false || (new_imo === true && new_date === false)) {
 		logger.info(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
@@ -193,16 +199,14 @@ async function getShipStaticData(aisMessage) {
 		data.terminal = getTerminal(aisMessage);
 		
 		// update ships_data array & save full ship data to disk
-		await saveData([data], ships_data_filepath, 'csv');
 		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
 
 		// save data to use for a lookup (using object destructuring)
 		updateLookupTable(data);
-		await saveData(ships_list, ships_lookup_filepath, 'json');
-		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: true })
+		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: false })
 
 		// run summary stats
-		generateSummaryStats();
+		// generateSummaryStats();
 	}
 }
 
@@ -271,4 +275,3 @@ async function init(url, apiKey, bbox) {
 
 // kick isht off!!!
 export default { init };
-
