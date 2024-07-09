@@ -175,10 +175,7 @@ async function getShipStaticData(aisMessage) {
 	let new_date = ships_list
 		.filter(d => d.ImoNumber === data.ImoNumber)
 		.some(d => d.date.slice(0, -3) === data.date.slice(0, -3))
-	// let new_date = ships_list.some(d => {
-	// 	console.log(d.date, data.date)
-	// 	return d.date.slice(0, -3) === data.date.slice(0, -3)
-	// });
+	let new_date = ships_list.some(d => d.date.slice(0, -3) === data.date.slice(0, -3));
 
 	console.log(`IMO exists: ${new_imo}`)
 	console.log(`Date exists: ${new_date}, ${data.date.slice(0, -3)}`)
