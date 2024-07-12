@@ -200,7 +200,7 @@ async function getShipStaticData(aisMessage) {
 		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: false })
 
 		// run summary stats
-		// generateSummaryStats();
+		generateSummaryStats();
 	}
 }
 
