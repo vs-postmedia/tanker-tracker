@@ -1,17 +1,18 @@
-import fs from 'fs';
-import Papa from 'papaparse';
-// import { cumsum } from 'd3-array';
+// import fs from 'fs';
+// import Papa from 'papaparse';
 import saveData from './save-data.js';
-import { tidy, arrange, count, cumsum, groupBy, mutate, mutateWithSummary, n, nDistinct, summarize } from '@tidyjs/tidy';
+import { tidy, arrange, count, cumsum, groupBy, mutateWithSummary, n, nDistinct, pivotWider, select, summarize } from '@tidyjs/tidy';
 
 // VARS
 const directory = './data/';
-const shipdataFilepath = './data/ships-data.csv';
+// const shipdataFilepath = './data/ships-data.csv';
 
 // FUNCTIONS
+
+// fill missing dates for cum
+
+// overall summary
 async function generateSummaryStats(data) {
-    // console.log('Summary stats!')
-    
     // get year/month date of ship arrivals
     data.forEach(d => {
         d.year_month = d.date.slice(0, -3);
@@ -19,17 +20,6 @@ async function generateSummaryStats(data) {
 
     // total ship count
     const shipsTotal = data.length;
-
-    // cumulative ship count
-    // const shipsCumulative = tidy(
-    //     data,
-    //     groupBy(['terminal', 'date'], [
-    //         mutateWithSummary({
-    //             cumulativeSum: cumsum('count')
-    //         })
-    //     ])
-    // );
-
 
     // get ship count by day
     const shipsDaily = tidy(
@@ -41,16 +31,8 @@ async function generateSummaryStats(data) {
         ])
     );
 
-    // cumulative sums by terminal
-    const shipsCumulative = tidy(
-        shipsDaily,
-        groupBy(['terminal'], [
-            mutateWithSummary({
-                cumulativeCount: cumsum('total')
-            })
-        ])
-    );
-     
+    // console.log(JSON.stringify(shipsDaily));
+
     // get ship count by month
     const shipsMonthly = tidy(
         data,
@@ -60,6 +42,24 @@ async function generateSummaryStats(data) {
             })
         ])
     );
+
+    // cumulative sums by terminal
+    const shipsCumulative = tidy(
+        shipsMonthly,
+        groupBy(['terminal'], [
+            mutateWithSummary({
+                cumulativeCount: cumsum('total')
+            })
+        ]),
+        select(['-total']),
+        pivotWider({
+            namesFrom: 'terminal',
+            valuesFrom: 'cumulativeCount'
+        })
+    );
+
+    console.log(JSON.stringify(shipsCumulative));
+     
 
     // get ship count by by IMO
     const shipsUnique = tidy(
@@ -75,7 +75,7 @@ async function generateSummaryStats(data) {
     // log results
     // console.log(shipsTotal)
     // console.log(`SUMMARY STATS: ${JSON.stringify(shipsDaily)}`)
-    console.log(`SUMMARY STATS: ${JSON.stringify(shipsCumulative)}`)
+    // console.log(`SUMMARY STATS: ${JSON.stringify(shipsCumulative)}`)
     // console.log(shipsUnique)
 
     // save summary data files
@@ -101,4 +101,4 @@ async function init() {
         header: true
     });
 }
-export default init;
+export default generateSummaryStats;
