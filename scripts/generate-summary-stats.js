@@ -5,12 +5,8 @@ import { tidy, arrange, count, cumsum, groupBy, mutateWithSummary, n, nDistinct,
 
 // VARS
 const directory = './data/';
-// const shipdataFilepath = './data/ships-data.csv';
 
 // FUNCTIONS
-
-// fill missing dates for cum
-
 // overall summary
 async function generateSummaryStats(data) {
     // get year/month date of ship arrivals
@@ -30,8 +26,6 @@ async function generateSummaryStats(data) {
             })
         ])
     );
-
-    // console.log(JSON.stringify(shipsDaily));
 
     // get ship count by month
     const shipsMonthly = tidy(
@@ -56,10 +50,7 @@ async function generateSummaryStats(data) {
             namesFrom: 'terminal',
             valuesFrom: 'cumulativeCount'
         })
-    );
-
-    console.log(JSON.stringify(shipsCumulative));
-     
+    );  
 
     // get ship count by by IMO
     const shipsUnique = tidy(
@@ -72,33 +63,11 @@ async function generateSummaryStats(data) {
         )
     );
 
-    // log results
-    // console.log(shipsTotal)
-    // console.log(`SUMMARY STATS: ${JSON.stringify(shipsDaily)}`)
-    // console.log(`SUMMARY STATS: ${JSON.stringify(shipsCumulative)}`)
-    // console.log(shipsUnique)
-
     // save summary data files
     saveData(shipsUnique, { filepath: `${directory}ships-unique`, format: 'csv', append: false });
     saveData(shipsDaily, { filepath: `${directory}ships-daily`, format: 'csv', append: false });
-    saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
+    // saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
     saveData(shipsCumulative, { filepath: `${directory}ships-cumulative`, format: 'csv', append: false });
 }
 
-async function init() {
-    // read in the master csvfile
-    const file = fs.readFileSync(shipdataFilepath, 'utf8');
-
-    // convert to json
-    Papa.parse(file, {
-        complete: (response) => {
-            // NEEDS ERROR LOG HERE
-
-            // run summary stats
-            generateSummaryStats(response.data)
-        },
-        delimiter: ',',
-        header: true
-    });
-}
 export default generateSummaryStats;
