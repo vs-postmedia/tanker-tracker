@@ -69,35 +69,36 @@ async function aisStream(url, apiKey, bbox) {
 	
 	// on socket close
 	socket.addEventListener('close', (e) => {
-		console.log('WebSocket connection closed.');
-		console.log(e.code)
+		console.log(`WebSocket connection closed, code: ${e.code}`);
+		exitScript();
 	});
+
 	// error msg
 	socket.addEventListener('error', (e) => {
-		console.log(e);
-		logger.err(`Socket setup failed: ${JSON.parse(e)}`);
+		console.log(`Socket setup failed: ${JSON.parse(e)}`);
+		exitScript();
 	});
 
 	// on message rx
 	socket.addEventListener('message', (e) => {
 		let aisMessage = JSON.parse(e.data);
 
+			// check for ships currently moored
+			if (aisMessage.MessageType === 'PositionReport') {
+				// cache currently moored ships
+				// getCurrentShips(aisMessage);
+			}
+
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-			console.log(aisMessage.Message.ShipStaticData.Type, aisMessage.Message.ShipStaticData.Name)
+			console.log(`SSD: ${aisMessage.Message.ShipStaticData.Type}, ${aisMessage.Message.ShipStaticData.Name}`);
+
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				getShipStaticData(aisMessage);
 			}
 		}
-
-		// check for moored or moving ships
-		if (aisMessage.MessageType === 'PositionReport') {
-			// cache currently moored ships
-			// getCurrentShips(aisMessage);
-		}
 	});
-
 }
 
 // calculate length/width of ship
@@ -126,7 +127,7 @@ function exitScript() {
 	socket.close();
 
 	console.log(`Shutting down script run: ${new Date()}`);
-	logger.info(`Shutting down script run: ${new Date()}`);
+	// logger.info(`Shutting down script run: ${new Date()}`);
 	
 	// exit script
 	process.exit(0);
@@ -134,57 +135,69 @@ function exitScript() {
 
 // get currentShipPositions
 async function getCurrentShips(aisMessage) {
-	let data = aisMessage.MetaData;
+	const metaData = aisMessage.MetaData;
+	const positionData = aisMessage.Message.PositionReport;
 
-	console.log(`getCurrentShips: ${data.ShipName}`);
-	// console.log(data)
+	console.log(aisMessage)
+	console.log(`GCS: ${metaData.ShipName.trim()}, ${positionData.NavigationalStatus}`);
 
 	// check navstatus to see if ship is moored or at anchor
 	// https://datalastic.com/blog/ais-navigational-status/
-	if (data.NavigationalStatus === 1 || data.NavigationalStatus === 5) {
+	// if (positionData.NavigationalStatus === 1 || positionData.NavigationalStatus === 5) {
 		// get mmsi number
-		let mmsi = data.MMSI;
+		let mmsi = metaData.MMSI;
+		let shipMoored = current_ships_cache.some(d => d.MMSI === mmsi);
+		// console.log(`Moored: ${shipMoored}`)
 
 		// if mmsi isn't cached as currently moored, do so.
-		if (current_ships_cache.find(d => d.MMSI === mmsi) === undefined) {
+		if (shipMoored === undefined) {
 			// determine terminal
-			data.terminal = getTerminal(aisMessage);
-			data.ShipName = data.ShipName.trim();
+			// data.terminal = getTerminal(aisMessage);
+			// data.ShipName = data.ShipName.trim();
+			// current_ships_cache.push({imo: imo, terminal: terminal});
 			current_ships_cache.push(mmsi);
+
+			console.log(JSON.stringify(current_ships_cache))
+
+			// save to current ships cache
+			// await saveData(current_ships_cache, { filepath: current_ships_filepath, format: 'json', append: false });
 			
 			// post announcement to social media
 			// postToTwitter(data);
 		}
-	}
+	// }
 }
 
 // staticshipdata includes imo, mmsi, ship type, size, etc
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
-	// console.log(data)
-
-	console.log(`${aisMessage.MessageType}: ${aisMessage.MetaData.ShipName}`);
 
 	// timestamp to local ymd format
 	const timestamp = aisMessage.MetaData.time_utc;
 	const date = new Date(timestamp);
 	data.date = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+	// create array from Eta
+	const timeArray = `${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute},${data.Eta.Month},${date.getFullYear()}`;
 
-	// if new IMO or same IMO on new date, update cache 
+
+	// if new IMO or same IMO with new ETA, update cache 
 	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	let new_date = ships_list.some(d => d.date.slice(0, -3) === data.date.slice(0, -3));
+	let new_eta = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 
-	console.log(`IMO exists: ${new_imo}`)
-	console.log(`Date exists: ${new_date}, ${data.date.slice(0, -3)}`)
+	console.log(`IMO exists: ${new_imo}`);
+	console.log(`ETA exists: ${new_eta}, ${data.Eta}`);
 
-	if (new_imo === false || (new_imo === true && new_date === false)) {
-		logger.info(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
+	// console.log(data)
+	// generateSummaryStats([data])
+
+	if (new_imo === false || (new_imo === true && new_eta == false)) {
+		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
 		data.CallSign = data.CallSign.trim();
 		data.Destination = data.Destination.trim();
 		data.Dimension = calculateShipDimensions(data.Dimension);
-		data.Eta = null;
+		data.Eta = timeArray;
 		data.Name = data.Name.trim();
 		// get mmsi & arrival date
 		data.MMSI = aisMessage.MetaData.MMSI;
@@ -200,7 +213,7 @@ async function getShipStaticData(aisMessage) {
 		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: false })
 
 		// run summary stats
-		generateSummaryStats();
+		generateSummaryStats([data]);
 	}
 }
 
@@ -244,9 +257,9 @@ function getTerminal(data) {
 	return terminal;
 }
 
-// create a ship lookup with imo, mmsi & date
+// update a ship lookup table with imo, mmsi & eta from the full dataset
 function updateLookupTable(data) {
-	let lookup = (({ImoNumber, MMSI, date}) => ({ImoNumber, MMSI, date}))(data);
+	let lookup = (({ImoNumber, MMSI, Eta}) => ({ImoNumber, MMSI, Eta}))(data);
 	ships_list.push(lookup);
 }
 
