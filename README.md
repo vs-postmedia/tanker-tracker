@@ -12,10 +12,10 @@ App uses AisStream.js to tracking tankers moored at the Westridge terminal with 
 | CallSign | string | ships call sign |
 | Destination | string | |
 | Dimension | string | In the format [Length]:[width] |
-| Dte| boolean| |
+| Dte | boolean | Data Terminal Equipment |
 | Eta | string | In the format [Day,Hour,Minute,Month,Year] |
 | FixType | int | |
-| ImoNumber | int | |
+| ImoNumber | int | 7-digit number that remains with the vessel for its entire lifetime |
 | MaximumStaticDraught | double | |
 | MessageID | int |  |
 | Name | string | |
@@ -25,6 +25,6 @@ App uses AisStream.js to tracking tankers moored at the Westridge terminal with 
 | UserID | int | |
 | Valid| boolean | |
 | date | string | In the format [YYYY-MM-DD] |
-| MMSI| int| |
+| MMSI | int | Maritime Mobile Service Identity. 9-digit number. Can change over time |
 | time_utc | string | utc datetime |
 | terminal | string | Either Westridge or Suncor |
