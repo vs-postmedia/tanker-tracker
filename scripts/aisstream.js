@@ -181,16 +181,16 @@ async function getShipStaticData(aisMessage) {
 
 
 	// if new IMO or same IMO with new ETA, update cache 
-	let new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	let new_eta = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
+	const new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
+	const new_eta = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 
 	console.log(`IMO exists: ${new_imo}`);
-	console.log(`ETA exists: ${new_eta}, ${data.Eta}`);
+	console.log(`ETA exists: ${new_eta}, ${JSON.stringify(data.Eta)}`);
 
 	// console.log(data)
 	// generateSummaryStats([data])
 
-	if (new_imo === false || (new_imo === true && new_eta == false)) {
+	if (new_imo === false || (new_imo === true && new_eta == false && data.Destination.includes('VAN'))) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
