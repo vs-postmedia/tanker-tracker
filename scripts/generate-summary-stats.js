@@ -7,6 +7,7 @@ const directory = './data/';
 // FUNCTIONS
 // overall summary
 async function generateSummaryStats(data) {
+    console.log(data)
     // get year/month date of ship arrivals
     data.forEach(d => {
         // better to strip blank lines out of ships-data.csv but...
@@ -33,12 +34,21 @@ async function generateSummaryStats(data) {
             summarize({
                 total: n()
             })
-        ])
+        ]),
+        pivotWider({
+            namesFrom: 'terminal',
+            valuesFrom: 'total'
+        })
     );
 
     // cumulative sums by terminal
     const shipsCumulative = tidy(
-        shipsMonthly,
+        data,
+        groupBy(['year_month', 'terminal'], [
+            summarize({
+                total: n()
+            })
+        ]),
         groupBy(['terminal'], [
             mutateWithSummary({
                 cumulativeCount: cumsum('total')
@@ -65,7 +75,7 @@ async function generateSummaryStats(data) {
     // save summary data files
     saveData(shipsUnique, { filepath: `${directory}ships-unique`, format: 'csv', append: false });
     saveData(shipsDaily, { filepath: `${directory}ships-daily`, format: 'csv', append: false });
-    // saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
+    saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
     saveData(shipsCumulative, { filepath: `${directory}ships-cumulative`, format: 'csv', append: false });
 }
 
