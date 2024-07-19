@@ -9,16 +9,16 @@ App uses AisStream.js to tracking tankers moored at the Westridge terminal with 
 | Variable | Format | Description |
 | --- | --- | --- |
 | AisVersion | int | Either 1 or 2 |
-| CallSign | string | ships call sign |
-| Destination | string | |
-| Dimension | string | In the format [Length]:[width] |
+| CallSign | string | Unique alphanumeric ID used for radio communications |
+| Destination | string | Ship’s reported destination (fdoes not appear to be in a standardized format) |
+| Dimension | string | In the format [Length]:[width] (in metres) |
 | Dte | boolean | Data Terminal Equipment |
-| Eta | string | In the format [Day,Hour,Minute,Month,Year] |
+| Eta | string | In the format [Year,Month,Day,Hour,Minute] (24-hour format). This metric has been modified from the standard AIS format |
 | FixType | int | |
-| ImoNumber | int | 7-digit number that remains with the vessel for its entire lifetime |
-| MaximumStaticDraught | double | |
+| ImoNumber | int | 7-digit identified assigned to ships or their lifetime |
+| MaximumStaticDraught | double | Max vertical distance between the waterline and the bottom of the hull (in metres) |
 | MessageID | int |  |
-| Name | string | |
+| Name | string | Registered name of the ship |
 | RepeatIndicator | int  |
 | Spare | boolean | |
 | Type | int | |
