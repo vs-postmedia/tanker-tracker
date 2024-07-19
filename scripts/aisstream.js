@@ -91,7 +91,7 @@ async function aisStream(url, apiKey, bbox) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-			console.log(`SSD: ${aisMessage.Message.ShipStaticData.Type}, ${aisMessage.Message.ShipStaticData.Name}`);
+			console.log(`SSD: ${aisMessage.Message.ShipStaticData.Type} ${aisMessage.Message.ShipStaticData.Name}`);
 
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
@@ -143,7 +143,7 @@ async function getCurrentShips(aisMessage) {
 
 	// check navstatus to see if ship is moored or at anchor
 	// https://datalastic.com/blog/ais-navigational-status/
-	// if (positionData.NavigationalStatus === 1 || positionData.NavigationalStatus === 5) {
+	if (positionData.NavigationalStatus === 1 || positionData.NavigationalStatus === 5) {
 		// get mmsi number
 		let mmsi = metaData.MMSI;
 		let shipMoored = current_ships_cache.some(d => d.MMSI === mmsi);
@@ -165,7 +165,7 @@ async function getCurrentShips(aisMessage) {
 			// post announcement to social media
 			// postToTwitter(data);
 		}
-	// }
+	}
 }
 
 // staticshipdata includes imo, mmsi, ship type, size, etc
@@ -177,7 +177,7 @@ async function getShipStaticData(aisMessage) {
 	const date = new Date(timestamp);
 	data.date = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 	// create array from Eta
-	const timeArray = `${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute},${data.Eta.Month},${date.getFullYear()}`;
+	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
 
 	// if new IMO or same IMO with new ETA, update cache 
