@@ -14,15 +14,16 @@ import current_ships from '../data/current-ships.json' assert { type: 'json' };
 
 // VARS
 let logger, socket;
-let ships_list_lookup = [];
-let current_ships_cache = [];
+const ships_list_lookup = [];
+const current_ships_cache = [];
 let ebay_poly, suncor_poly, westridge_poly;
 
-const runtime = 30; // how long websocket will stay open, in minutes
+ // how long websocket will stay open, in minutes
+const runtime = 30;
+// how often current_ships_cache is saved to disk (ms)
 const current_ships_interval = 5000;
-// https://www.navcen.uscg.gov/sites/default/files/pdf/AIS/AISGuide.pdf
-const ship_types = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker
-// const ship_types = [70, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
+// https://api.vesselfinder.com/docs/ref-aistypes.html
+const ship_types = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
 
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
@@ -86,7 +87,7 @@ async function aisStream(url, apiKey, bbox) {
 			// check for ships currently moored
 			if (aisMessage.MessageType === 'PositionReport') {
 				// cache currently moored ships
-				// getCurrentShips(aisMessage);
+				getCurrentShips(aisMessage);
 			}
 
 		// get static ship data on ships in bboxes
@@ -122,12 +123,14 @@ async function createLogger(logfile, level) {
 }
 
 // shut ’er down!
-function exitScript() {
+async function exitScript() {
 	// close websocket
 	socket.close();
 
 	console.log(`Shutting down script run: ${new Date()}`);
-	// logger.info(`Shutting down script run: ${new Date()}`);
+	
+	// save the current ships cache to disk
+	await saveData(current_ships_cache, { filepath: current_ships_filepath, format: 'json', append: false });
 	
 	// exit script
 	process.exit(0);
@@ -135,32 +138,36 @@ function exitScript() {
 
 // get currentShipPositions
 async function getCurrentShips(aisMessage) {
+	const shipDetails = [];
 	const metaData = aisMessage.MetaData;
-	const positionData = aisMessage.Message.PositionReport;
+	const positionReport = aisMessage.Message.PositionReport;
 
-	console.log(aisMessage)
-	console.log(`GCS: ${metaData.ShipName.trim()}, ${positionData.NavigationalStatus}`);
+	// console.log(`GCS: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
+	// console.log(aisMessage)
 
 	// check navstatus to see if ship is moored or at anchor
-	// https://datalastic.com/blog/ais-navigational-status/
-	if (positionData.NavigationalStatus === 1 || positionData.NavigationalStatus === 5) {
+	// https://api.vesselfinder.com/docs/ref-navstat.html
+	if (positionReport.NavigationalStatus === 1 || positionReport.NavigationalStatus === 5) {
 		// get mmsi number
 		let mmsi = metaData.MMSI;
-		let shipMoored = current_ships_cache.some(d => d.MMSI === mmsi);
-		// console.log(`Moored: ${shipMoored}`)
+		// is MMSI already in the cache of moored ships?
+		let shipCached = current_ships_cache.some(d => d.MMSI === mmsi);
+		// console.log(`Ship cached: ${shipCached}`)
 
 		// if mmsi isn't cached as currently moored, do so.
-		if (shipMoored === undefined) {
-			// determine terminal
-			// data.terminal = getTerminal(aisMessage);
-			// data.ShipName = data.ShipName.trim();
-			// current_ships_cache.push({imo: imo, terminal: terminal});
-			current_ships_cache.push(mmsi);
+		if (shipCached === false) {
+			const ship = ships_list.filter(d => d.MMSI === mmsi);
+			if (ship.length > 0) {
+				// fetch ship details from VesselFinder
+				// let shipDetails = await fetchShipDetails(ship[0]);
+				let shipDetails = ship[0];
+				shipDetails.terminal = getTerminal(positionReport.Latitude, positionReport.Longitude);
+				// shipDetails.push(shipDetails);
 
-			console.log(JSON.stringify(current_ships_cache))
+				current_ships_cache.push(shipDetails);
+			}
 
-			// save to current ships cache
-			// await saveData(current_ships_cache, { filepath: current_ships_filepath, format: 'json', append: false });
+			// console.log(JSON.stringify(current_ships_cache))
 			
 			// post announcement to social media
 			// postToTwitter(data);
@@ -179,7 +186,6 @@ async function getShipStaticData(aisMessage) {
 	// create array from Eta
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
-
 	// if new IMO or same IMO with new ETA, update cache 
 	const new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
 	const new_eta = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
@@ -195,6 +201,7 @@ async function getShipStaticData(aisMessage) {
 
 		// trim whitespace from strings
 		data.CallSign = data.CallSign.trim();
+		// calculate ship dimensions (m)
 		data.Destination = data.Destination.trim();
 		data.Dimension = calculateShipDimensions(data.Dimension);
 		data.Eta = timeArray;
@@ -203,7 +210,8 @@ async function getShipStaticData(aisMessage) {
 		data.MMSI = aisMessage.MetaData.MMSI;
 		data.time_utc = timestamp;
 		// determine terminal
-		data.terminal = getTerminal(aisMessage);
+		// data.terminal = getTerminal(aisMessage);
+		data.terminal = getTerminal(aisMessage.MetaData.Latitude, aisMessage.MetaData.Longitude);
 		
 		// update ships_data array & save full ship data to disk
 		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
@@ -217,28 +225,15 @@ async function getShipStaticData(aisMessage) {
 	}
 }
 
-// unused so far...
-// async function checkShipDeparture(aisMessage) {
-// 	// course over ground (direction of movement)
-// 	let cog = aisMessage.Message.PositionReport.Cog;
-// 	// speed over ground (<1 seems to be 'stopped')
-// 	let sog = aisMessage.Message.PositionReport.Sog;
-// 	// https://datalastic.com/blog/ais-navigational-status/
-// 	let navstat = aisMessage.Message.PositionReport.NavigationalStatus;
-	
-// 	if (navstat === 0 && cog > 200 && cog < 338 && sog > 1) {
-// 		console.log('headed west!')
-// 		console.log(aisMessage);
-// 	}
-// }
-
 // check if ship lat/lon is inside one of the defined terminal zones
-function getTerminal(data) {
+// function getTerminal(data) {
+function getTerminal(lat,lon) {
 	let terminal;
 
 	// ship position
-	const point = ([data.MetaData.latitude, data.MetaData.longitude]);
-	
+	// const point = ([data.MetaData.latitude, data.MetaData.longitude]);
+	const point = ([lat,lon]);
+
 	// determine where ship is located
 	if (booleanPointInPolygon(point, westridge_poly)) {
 		terminal = 'Westridge';
