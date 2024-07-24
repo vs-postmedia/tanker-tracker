@@ -7,7 +7,7 @@ const directory = './data/';
 // FUNCTIONS
 // overall summary
 async function generateSummaryStats(data) {
-    // console.log(data)
+    console.log(data)
     data.forEach(d => {
         // better to strip blank lines out of ships-data.csv but...
         if (d.date !== undefined) { d.year_month = d.date.slice(0, -3); }
@@ -65,11 +65,13 @@ async function generateSummaryStats(data) {
         data,
         groupBy('ImoNumber', [
             summarize({
-                count: nDistinct('ImoNumber')
+                count: n('ImoNumber')
             })
         ]
         )
     );
+
+    console.log(shipsUnique)
 
     // save summary data files
     saveData(shipsUnique, { filepath: `${directory}ships-unique`, format: 'csv', append: false });
