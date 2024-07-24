@@ -3,7 +3,6 @@ import winston from 'winston';
 import saveData from './save-data.js';
 import { point, polygon } from '@turf/helpers';
 // import { postToTwitter } from './post-online.js';
-import generateSummaryStats from './generate-summary-stats.js';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 
 // DATA
@@ -16,14 +15,13 @@ import current_ships from '../data/current-ships.json' assert { type: 'json' };
 let logger, socket;
 const ships_list_lookup = [];
 const current_ships_cache = [];
-let ebay_poly, suncor_poly, westridge_poly;
+let ebay_poly, suncor_poly, westridge_poly;    //helo bruh iam freaking nate pasion hello  
 
  // how long websocket will stay open, in minutes
-const runtime = 30;
-// how often current_ships_cache is saved to disk (ms)
-const current_ships_interval = 5000;
+ const runtime = 3;
+ // const runtime = 1;
 // https://api.vesselfinder.com/docs/ref-aistypes.html
-const ship_types = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
+const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
 
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
@@ -61,11 +59,6 @@ async function aisStream(url, apiKey, bbox) {
 		
 		// open AISstream websocket
 		socket.send(JSON.stringify(subscriptionMsg));
-
-		// save the current ships cache to disk every xxx minutes
-		setInterval(() => {
-			// saveData(current_ships_cache, current_ships_filepath, 'json');
-		}, current_ships_interval);
 	});
 	
 	// on socket close
@@ -107,6 +100,27 @@ function calculateShipDimensions(data) {
 	return `${data.A + data.B}:${data.C + data.D}`;
 }
 
+// ship destinations can change while moored, which leads to double counting
+// we only want to count ships when they moor in Vancouver, not when they leave
+function checkDestination(str) {
+	// Check if "VAN" appears before ">"
+	const vanBeforeGreaterThan = /VAN[^>]*>/.test(str);
+
+	if (vanBeforeGreaterThan) {
+		return false;
+	}
+ 	
+	// If not, check if "VAN" appears anywhere in the string
+ 	const vanAnywhere = str.includes("VAN");
+
+	if (vanAnywhere) {
+		return true
+	}
+
+	// else return false
+	return false
+}
+
 // setup logging
 async function createLogger(logfile, level) {
 	return winston.createLogger({
@@ -124,17 +138,23 @@ async function createLogger(logfile, level) {
 
 // shut ’er down!
 async function exitScript() {
+	console.log(current_ships_cache)
+	// save the current ships cache to disk
+	await saveData(current_ships_cache, { filepath: current_ships_filepath, format: 'json', append: false });
+
+	// // run summary stats
+	// const data = await fetchShipData(`${ships_data_filepath}.csv`);
+	// await generateSummaryStats(data);
+
 	// close websocket
 	socket.close();
 
 	console.log(`Shutting down script run: ${new Date()}`);
 	
-	// save the current ships cache to disk
-	await saveData(current_ships_cache, { filepath: current_ships_filepath, format: 'json', append: false });
-	
 	// exit script
 	process.exit(0);
 }
+
 
 // get currentShipPositions
 async function getCurrentShips(aisMessage) {
@@ -189,14 +209,14 @@ async function getShipStaticData(aisMessage) {
 	// if new IMO or same IMO with new ETA, update cache 
 	const new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
 	const new_eta = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
+	const destination = data.Destination
 
 	console.log(`IMO exists: ${new_imo}`);
-	console.log(`ETA exists: ${new_eta}, ${JSON.stringify(data.Eta)}`);
+	console.log(`ETA exists: ${new_eta}`);
+	console.log(`Destination VAN: ${checkDestination(data.Destination)}`)
 
-	// console.log(data)
-	// generateSummaryStats([data])
-
-	if (new_imo === false || (new_imo === true && new_eta == false && data.Destination.includes('VAN'))) {
+	// if (new_imo === false || (new_imo === true && new_eta == false && data.Destination.includes('VAN'))) {
+	if (new_imo === false || (new_imo === true && new_eta == false && checkDestination(data.Destination === true))) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
@@ -211,17 +231,14 @@ async function getShipStaticData(aisMessage) {
 		data.time_utc = timestamp;
 		// determine terminal
 		// data.terminal = getTerminal(aisMessage);
-		data.terminal = getTerminal(aisMessage.MetaData.Latitude, aisMessage.MetaData.Longitude);
+		data.terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
 		
 		// update ships_data array & save full ship data to disk
 		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
 
 		// save data to use for a lookup (using object destructuring)
 		updateLookupTable(data);
-		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: false })
-
-		// run summary stats
-		generateSummaryStats([data]);
+		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: false });
 	}
 }
 
@@ -244,9 +261,8 @@ function getTerminal(lat,lon) {
 	}
 
 	if (terminal == undefined) {
-		console.log(`Terminal undefined:`)
-		console.log(point)
-		console.log(suncor_poly)
+		console.log(`Terminal undefined`)
+		console.log(point, lat, lon)
 	}
 
 	return terminal;

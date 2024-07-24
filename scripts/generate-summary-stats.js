@@ -7,8 +7,7 @@ const directory = './data/';
 // FUNCTIONS
 // overall summary
 async function generateSummaryStats(data) {
-    console.log(data)
-    // get year/month date of ship arrivals
+    // console.log(data)
     data.forEach(d => {
         // better to strip blank lines out of ships-data.csv but...
         if (d.date !== undefined) { d.year_month = d.date.slice(0, -3); }
