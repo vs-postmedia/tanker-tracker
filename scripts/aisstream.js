@@ -18,7 +18,7 @@ const current_ships_cache = [];
 let ebay_poly, suncor_poly, westridge_poly;    //helo bruh iam freaking nate pasion hello  
 
  // how long websocket will stay open, in minutes
- const runtime = 3;
+ const runtime = 30;
  // const runtime = 1;
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -138,7 +138,6 @@ async function createLogger(logfile, level) {
 
 // shut ’er down!
 async function exitScript() {
-	console.log(current_ships_cache)
 	// save the current ships cache to disk
 	await saveData(current_ships_cache, { filepath: current_ships_filepath, format: 'json', append: false });
 
