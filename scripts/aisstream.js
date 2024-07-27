@@ -105,7 +105,7 @@ function calculateShipDimensions(data) {
 function checkDestination(str) {
 	// Check if "VAN" appears before ">"
 	const vanBeforeGreaterThan = /VAN[^>]*>/.test(str);
-
+	// console.log(str, vanBeforeGreaterThan)
 	if (vanBeforeGreaterThan) {
 		return false;
 	}
@@ -216,6 +216,7 @@ async function getShipStaticData(aisMessage) {
 
 	// if (new_imo === false || (new_imo === true && new_eta == false && data.Destination.includes('VAN'))) {
 	if (new_imo === false || (new_imo === true && new_eta == false && checkDestination(data.Destination) === true)) {
+	if (new_imo === false || (new_imo === true && new_eta == false)) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
