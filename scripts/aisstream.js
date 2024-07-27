@@ -215,7 +215,7 @@ async function getShipStaticData(aisMessage) {
 	console.log(`Destination VAN: ${checkDestination(data.Destination)}`)
 
 	// if (new_imo === false || (new_imo === true && new_eta == false && data.Destination.includes('VAN'))) {
-	if (new_imo === false || (new_imo === true && new_eta == false && checkDestination(data.Destination) === true)) {
+	// if (new_imo === false || (new_imo === true && new_eta == false && checkDestination(data.Destination) === true)) {
 	if (new_imo === false || (new_imo === true && new_eta == false)) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
