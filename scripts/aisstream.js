@@ -1,5 +1,4 @@
 import WebSocket from 'ws';
-import winston from 'winston';
 import saveData from './save-data.js';
 import { point, polygon } from '@turf/helpers';
 // import { postToTwitter } from './post-online.js';
@@ -13,7 +12,7 @@ import current_ships from '../data/current-ships.json' assert { type: 'json' };
 
 // VARS
 const runtime = 10; // how long websocket will stay open, in minutes
-let logger, socket;
+let socket;
 const ships_list_lookup = [];
 const current_ships_cache = [];
 let ebay_poly, suncor_poly, westridge_poly; 
@@ -98,22 +97,6 @@ function calculateShipDimensions(data) {
 	return `${data.A + data.B}:${data.C + data.D}`;
 }
 
-
-// setup logging
-async function createLogger(logfile, level) {
-	return winston.createLogger({
-		level: level,
-		format: winston.format.combine(
-			winston.format.timestamp(),
-			winston.format.printf(({ timestamp, level, message }) => `${timestamp} ${level}: ${message}`)
-		),
-		transports: [
-			new winston.transports.Console(),
-			new winston.transports.File({ filename: logfile })
-		]
-	});
-}
-
 // shut ’er down!
 async function exitScript() {
 	// save the current ships cache to disk
@@ -159,7 +142,8 @@ async function getCurrentShips(aisMessage) {
 				// let shipDetails = await fetchShipDetails(ship[0]);
 				let shipDetails = ship[0];
 				shipDetails.terminal = getTerminal(positionReport.Latitude, positionReport.Longitude);
-				// shipDetails.push(shipDetails);
+
+				// console.log(shipDetails)
 
 				current_ships_cache.push(shipDetails);
 			}
@@ -250,11 +234,7 @@ function updateLookupTable(data) {
 }
 
 async function init(url, apiKey) {
-	// setup logging
-	logger = await createLogger(static_ships_log_filepath, 'info');
-
 	console.log(`Starting new script run: ${new Date()}`);
-	logger.info(`Starting new script run: ${new Date()}`);
 
 	// start web socket to aisstream
 	aisStream(url, apiKey);
