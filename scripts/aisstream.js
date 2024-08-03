@@ -12,14 +12,12 @@ import current_ships from '../data/current-ships.json' assert { type: 'json' };
 // const ships_data = require('../data/ships-data.json');
 
 // VARS
+const runtime = 10; // how long websocket will stay open, in minutes
 let logger, socket;
 const ships_list_lookup = [];
 const current_ships_cache = [];
-let ebay_poly, suncor_poly, westridge_poly;    //helo bruh iam freaking nate pasion hello  
+let ebay_poly, suncor_poly, westridge_poly; 
 
- // how long websocket will stay open, in minutes
- const runtime = 30;
- // const runtime = 1;
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
 
@@ -100,26 +98,6 @@ function calculateShipDimensions(data) {
 	return `${data.A + data.B}:${data.C + data.D}`;
 }
 
-// ship destinations can change while moored, which leads to double counting
-// we only want to count ships when they moor in Vancouver, not when they leave
-function checkDestination(str) {
-	// Check if "VAN" appears before ">"
-	const vanBeforeGreaterThan = /VAN[^>]*>/.test(str);
-	// console.log(str, vanBeforeGreaterThan)
-	if (vanBeforeGreaterThan) {
-		return false;
-	}
- 	
-	// If not, check if "VAN" appears anywhere in the string
- 	const vanAnywhere = str.includes("VAN");
-
-	if (vanAnywhere) {
-		return true
-	}
-
-	// else return false
-	return false
-}
 
 // setup logging
 async function createLogger(logfile, level) {
@@ -205,32 +183,29 @@ async function getShipStaticData(aisMessage) {
 	// create array from Eta
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
-	// if new IMO or same IMO with new ETA, update cache 
-	const new_imo = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	const new_eta = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
-	const destination = data.Destination
+	// if new IMO or same IMO with new destination, update cache 
+	const destination = data.Destination.trim();
+	const imoExists = ships_list.some(d => d.ImoNumber === data.ImoNumber);
+	// ships sometimes update destination & ETA while moored, which leads to double counting
+	const newDestination = ships_list.some(d => d.Destination === destination);
 
-	console.log(`IMO exists: ${new_imo}`);
-	console.log(`ETA exists: ${new_eta}`);
-	console.log(`Destination VAN: ${checkDestination(data.Destination)}`)
+	console.log(`IMO exists: ${imoExists}`);
+	console.log(`Destination: ${newDestination}`);
 
-	// if (new_imo === false || (new_imo === true && new_eta == false && data.Destination.includes('VAN'))) {
-	// if (new_imo === false || (new_imo === true && new_eta == false && checkDestination(data.Destination) === true)) {
-	if (new_imo === false || (new_imo === true && new_eta == false)) {
+	if (imoExists === false || (imoExists === true && newDestination === false)) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
 		data.CallSign = data.CallSign.trim();
 		// calculate ship dimensions (m)
-		data.Destination = data.Destination.trim();
+		data.Destination = destination;
 		data.Dimension = calculateShipDimensions(data.Dimension);
-		data.Eta = timeArray;
+		data.Eta = timeArray; // we don't need this, it changes too much
 		data.Name = data.Name.trim();
 		// get mmsi & arrival date
 		data.MMSI = aisMessage.MetaData.MMSI;
 		data.time_utc = timestamp;
 		// determine terminal
-		// data.terminal = getTerminal(aisMessage);
 		data.terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
 		
 		// update ships_data array & save full ship data to disk
@@ -270,7 +245,7 @@ function getTerminal(lat,lon) {
 
 // update a ship lookup table with imo, mmsi & eta from the full dataset
 function updateLookupTable(data) {
-	let lookup = (({ImoNumber, MMSI, Eta}) => ({ImoNumber, MMSI, Eta}))(data);
+	let lookup = (({ImoNumber, MMSI, Destination}) => ({ImoNumber, MMSI, Destination}))(data);
 	ships_list.push(lookup);
 }
 
