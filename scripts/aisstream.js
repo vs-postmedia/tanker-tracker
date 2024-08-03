@@ -11,7 +11,7 @@ import current_ships from '../data/current-ships.json' assert { type: 'json' };
 // const ships_data = require('../data/ships-data.json');
 
 // VARS
-const runtime = 10; // how long websocket will stay open, in minutes
+const runtime = 30; // how long websocket will stay open, in minutes
 let socket;
 const ships_list_lookup = [];
 const current_ships_cache = [];
