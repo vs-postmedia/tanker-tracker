@@ -249,7 +249,7 @@ function updateLookupTable(data) {
 	ships_list.push(lookup);
 }
 
-async function init(url, apiKey, bbox) {
+async function init(url, apiKey) {
 	// setup logging
 	logger = await createLogger(static_ships_log_filepath, 'info');
 
@@ -257,7 +257,7 @@ async function init(url, apiKey, bbox) {
 	logger.info(`Starting new script run: ${new Date()}`);
 
 	// start web socket to aisstream
-	aisStream(url, apiKey, bbox);
+	aisStream(url, apiKey);
 
 	// convert runtime to ms
 	const streamDuration = (runtime * 60) * 1000;
