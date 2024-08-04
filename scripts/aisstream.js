@@ -8,7 +8,6 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import zones from '../data/zone-coords.json' assert { type: 'json' };
 import ships_list from '../data/ships-list.json' assert { type: 'json' };
 import current_ships from '../data/current-ships.json' assert { type: 'json' };
-// const ships_data = require('../data/ships-data.json');
 
 // VARS
 const runtime = 30; // how long websocket will stay open, in minutes
@@ -167,16 +166,18 @@ async function getShipStaticData(aisMessage) {
 	// create array from Eta
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
-	// if new IMO or same IMO with new destination, update cache 
+	// if new IMO or same IMO with new ETA/destination, update cache 
 	const destination = data.Destination.trim();
 	const imoExists = ships_list.some(d => d.ImoNumber === data.ImoNumber);
+	const etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 	// ships sometimes update destination & ETA while moored, which leads to double counting
 	const newDestination = ships_list.some(d => d.Destination === destination);
 
 	console.log(`IMO exists: ${imoExists}`);
+	console.log(`ETA exists: ${etaExists}`);
 	console.log(`Destination: ${newDestination}`);
 
-	if (imoExists === false || (imoExists === true && newDestination === false)) {
+	if (imoExists === false || (imoExists === true && etaExists === false &&newDestination === false)) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
@@ -229,7 +230,7 @@ function getTerminal(lat,lon) {
 
 // update a ship lookup table with imo, mmsi & eta from the full dataset
 function updateLookupTable(data) {
-	let lookup = (({ImoNumber, MMSI, Destination}) => ({ImoNumber, MMSI, Destination}))(data);
+	let lookup = (({ImoNumber, MMSI, Eta, Destination}) => ({ImoNumber, MMSI, Eta, Destination}))(data);
 	ships_list.push(lookup);
 }
 
