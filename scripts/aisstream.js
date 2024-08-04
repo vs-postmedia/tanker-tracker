@@ -51,7 +51,7 @@ async function aisStream(url, apiKey, bbox) {
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
 
-		// console.log(JSON.stringify(subscriptionMsg));
+		console.log(JSON.stringify(subscriptionMsg));
 		
 		// open AISstream websocket
 		socket.send(JSON.stringify(subscriptionMsg));
@@ -121,7 +121,7 @@ async function getCurrentShips(aisMessage) {
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
 
-	// console.log(`GCS: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
+	console.log(`GCS: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
 	// console.log(aisMessage)
 
 	// check navstatus to see if ship is moored or at anchor
@@ -137,7 +137,7 @@ async function getCurrentShips(aisMessage) {
 		if (shipCached === false) {
 			const ship = ships_list.filter(d => d.MMSI === mmsi);
 			if (ship.length > 0) {
-				// fetch ship details from VesselFinder
+				// fetch ship details from Equasis
 				// let shipDetails = await fetchShipDetails(ship[0]);
 				let shipDetails = ship[0];
 				shipDetails.terminal = getTerminal(positionReport.Latitude, positionReport.Longitude);
@@ -172,12 +172,15 @@ async function getShipStaticData(aisMessage) {
 	const etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 	// ships sometimes update destination & ETA while moored, which leads to double counting
 	const newDestination = ships_list.some(d => d.Destination === destination);
+	const isCached = current_ships.some(d => d.ImoNumber === data.ImoNumber);
 
 	console.log(`IMO exists: ${imoExists}`);
 	console.log(`ETA exists: ${etaExists}`);
 	console.log(`Destination: ${newDestination}`);
+	console.log(`Cached: ${isCached}`);
 
-	if (imoExists === false || (imoExists === true && etaExists === false &&newDestination === false)) {
+	// if (imoExists === false || (imoExists === true && etaExists === false && newDestination === false)) {
+	if (!imoExists || !isCached) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
