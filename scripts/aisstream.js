@@ -10,7 +10,7 @@ import ships_list from '../data/ships-list.json' assert { type: 'json' };
 import current_ships from '../data/current-ships.json' assert { type: 'json' };
 
 // VARS
-const runtime = 30; // how long websocket will stay open, in minutes
+const runtime = 10; // how long websocket will stay open, in minutes
 let socket;
 const ships_list_lookup = [];
 const current_ships_cache = [];
@@ -121,7 +121,7 @@ async function getCurrentShips(aisMessage) {
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
 
-	console.log(`GCS: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
+	// console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
 	// console.log(aisMessage)
 
 	// check navstatus to see if ship is moored or at anchor
@@ -159,6 +159,8 @@ async function getCurrentShips(aisMessage) {
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 
+	console.log(`STATIC SHIP: ${data.Type} ${data.Name}`);
+
 	// timestamp to local ymd format
 	const timestamp = aisMessage.MetaData.time_utc;
 	const date = new Date(timestamp);
@@ -166,29 +168,26 @@ async function getShipStaticData(aisMessage) {
 	// create array from Eta
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
-	// if new IMO or same IMO with new ETA/destination, update cache 
-	const destination = data.Destination.trim();
+	// if new IMO or ship not in `current_ships cache`
 	const imoExists = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	const etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
+	let etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 	// ships sometimes update destination & ETA while moored, which leads to double counting
-	const newDestination = ships_list.some(d => d.Destination === destination);
 	const isCached = current_ships.some(d => d.ImoNumber === data.ImoNumber);
 
 	console.log(`IMO exists: ${imoExists}`);
 	console.log(`ETA exists: ${etaExists}`);
-	console.log(`Destination: ${newDestination}`);
 	console.log(`Cached: ${isCached}`);
 
-	// if (imoExists === false || (imoExists === true && etaExists === false && newDestination === false)) {
-	if (!imoExists || !isCached) {
+	if (!imoExists || (imoExists && !etaExists) || !isCached) {
+	// if (!imoExists || !isCached) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
 		data.CallSign = data.CallSign.trim();
 		// calculate ship dimensions (m)
-		data.Destination = destination;
+		data.Destination = data.Destination.trim();
 		data.Dimension = calculateShipDimensions(data.Dimension);
-		data.Eta = timeArray; // we don't need this, it changes too much
+		data.Eta = timeArray;
 		data.Name = data.Name.trim();
 		// get mmsi & arrival date
 		data.MMSI = aisMessage.MetaData.MMSI;
