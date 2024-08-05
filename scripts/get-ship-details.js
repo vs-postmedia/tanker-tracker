@@ -4,6 +4,7 @@ import saveData from './save-data.js';
 
 // VARS
 let browser;
+const shipData = [];
 const emailId = 'home-login';
 const passId = 'home-password';
 const inspectionDataFilepath = './data/inspection-data';
@@ -23,13 +24,45 @@ async function init(data) {
     // initial browser setup
     const page = await setupPage(equasisUrl);
 
-    // login & search ship
-    const shipData = await searchEquasis(page, data, password);
-    console.log(shipData);
+    // login to equasis 
+    const loggedInPage = await loginToEquasis(page, password);
+    
+    // search ship info
+    const shipInfo = await fetchShipData(loggedInPage, data);
+    
+    // const shipData = await searchEquasis(loggedInPage, data);
+    console.log(shipInfo);
     // saveData(inspectionData, inspectionDataFilepath, 'csv');
 
     // close browser
     // await browser.close();
+}
+
+async function fetchShipData(page, data) {
+    const shipData = [];
+
+    for (const d of data) {
+        const results = await searchEquasis(page, d);
+        shipData.push(results);
+    }
+
+    return shipData;
+}
+
+async function loginToEquasis(page, password) {
+    // Wait for login elements to appear on the page.
+    await page.waitForSelector('#home-login');
+
+    // Type a username into the "username" input field with a delay between key presses.
+    await page.type('#home-login', 'ngriffiths@postmedia.com', { delay: 50 });
+
+    // Type a password into the "password" input field with a delay between key presses.
+    await page.type('#home-password', password, { delay: 50 });
+
+    // Click the login button
+    await page.click('.pull-right.btn.btn-lg.gris-bleu-copyright');
+
+    return page;
 }
 
 async function setupPage(url) {
@@ -47,18 +80,10 @@ async function setupPage(url) {
     return page;
 }
 
-async function searchEquasis(page, data, password) {
-    // Wait for login elements to appear on the page.
-    await page.waitForSelector('#home-login');
-
-    // Type a username into the "username" input field with a delay between key presses.
-    await page.type('#home-login', 'ngriffiths@postmedia.com', { delay: 50 });
-
-    // Type a password into the "password" input field with a delay between key presses.
-    await page.type('#home-password', password, { delay: 50 });
-
-    // Click the login button
-    await page.click('.pull-right.btn.btn-lg.gris-bleu-copyright');
+async function searchEquasis(page, data) {
+    console.log(data)
+    // go to home page
+    await page.click('.navbar-nav a[href*="HomePage"]');
 
     // Wait for search box to appear
     await page.waitForSelector('#P_ENTREE_HOME');
