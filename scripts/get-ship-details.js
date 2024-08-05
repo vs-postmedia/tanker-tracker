@@ -12,6 +12,8 @@ const userAgent =
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
             '(KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36';
 
+const shipInfoSelector = '#body > section:nth-child(9) > div > div > div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div:nth-child(2) > div.col-lg-12.col-md-12.col-sm-12.col-xs-12 > div.access-item > div > div > div.col-lg-12.col-md-12.col-sm-12.col-xs-12';
+
 async function init(data) {
     console.log(data)
 
@@ -21,9 +23,9 @@ async function init(data) {
     // initial browser setup
     const page = await setupPage(equasisUrl);
 
-    // search the site
-    const inspectionData = await searchEquasis(page, data, password);
-    console.log(inspectionData);
+    // login & search ship
+    const shipData = await searchEquasis(page, data, password);
+    console.log(shipData);
     // saveData(inspectionData, inspectionDataFilepath, 'csv');
 
     // close browser
@@ -72,6 +74,43 @@ async function searchEquasis(page, data, password) {
     await page.waitForSelector(imoSelector);
     await page.click(imoSelector);
 
+    // collect ship info
+    let shipInfo = await getShipInfo(page, data.ImoNumber, shipInfoSelector);
+
+    // collect inspection data
+    let inspectionData = await getInspectionData(page, data.ImoNumber);
+
+    // console.log(inspectionData)
+    return {
+        ship_info: shipInfo,
+        inspection_data: inspectionData
+    };
+}
+
+async function getShipInfo(page, imo, shipInfoSelector) {
+    // console.log(shipInfoSelector);
+    const shipDetails = await page.evaluate((imo, selector) => {
+        const table = document.querySelector(selector);
+        const rows = Array.from(table.querySelectorAll('.row'));
+
+        // get each 'cell' from each row
+        const cells = rows.map(row => Array.from(row.querySelectorAll('.col-xs-6')));
+
+        return {
+            imo_number: imo,
+            flag: cells[0][3].textContent.trim().replace('(','').replace(')', ''),
+            gross_tonnage: parseInt(cells[3][1].textContent.trim()),
+            ship_type: cells[5][1].textContent.trim(),
+            build_year: cells[6][1].textContent.trim()
+        };
+
+    }, imo, shipInfoSelector);
+
+    return shipDetails;
+}
+
+
+async function getInspectionData(page, imo) {
     // find & click the inspections tab
     try {
         const inspectionSelector = 'button[onclick*="ShipInspection?fs=ShipInfo"]';
@@ -85,17 +124,6 @@ async function searchEquasis(page, data, password) {
     } catch (error) {
         // console.log(error);
     }
-
-    // collect inspection data
-    let inspectionData = await getInspectionData(page, data.ImoNumber);
-    // drop header row
-    inspectionData.shift();
-
-    // console.log(inspectionData)
-    return inspectionData;
-}
-
-async function getInspectionData(page, imo) {
 
     const inspectionData = await page.evaluate(() => {
         let rowCache = [];
@@ -140,7 +168,8 @@ async function getInspectionData(page, imo) {
         }
     });
 
-    // console.log(inspectionData)
+    // drop header row
+    inspectionData.shift();
 
     return inspectionData;
 }
