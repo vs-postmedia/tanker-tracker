@@ -81,7 +81,7 @@ async function aisStream(url, apiKey, bbox) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-			console.log(`SSD: ${aisMessage.Message.ShipStaticData.Type} ${aisMessage.Message.ShipStaticData.Name}`);
+			// console.log(`SSD: ${aisMessage.Message.ShipStaticData.Type} ${aisMessage.Message.ShipStaticData.Name}`);
 
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
