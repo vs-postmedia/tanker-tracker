@@ -1,33 +1,51 @@
-import fs from 'fs';
+// import fs from 'fs';
 import Papa from 'papaparse';
+import { promises as fs } from 'fs';
 
-async function saveData(data, filepath, format, data_dir) {
-	// save file locally%
-	if (format === 'json') {
-		try {
-			fs.writeFileSync(`${filepath}.${format}`, JSON.stringify(data));
-			console.log(`Saved to ${filepath}`);
-		} catch (err) {
-			console.error(err);
-		}
-	} else {
+async function saveData(data, options) {
+	// not sure why we need this... 🤷‍♂️
+	if (data.length === 0) return;
+	
+	// append or overwrite file
+	if (options.append === true) {
 		try {
 			// covert to csv and append line to file
-			fs.appendFile(
-				`${filepath}.${format}`, 
-				// `\n${parser.parse(data)}`, 
+			await fs.appendFile(
+				`${options.filepath}.${options.format}`, 
 				`\n${Papa.unparse(data, { header: false })}`,
-				// {encoding: 'utf8' }, 
 				(err) => {
 					if (err) {
 						console.err('Error: ', err);
 					} else {
-						console.log(`Saved to ${filepath}`);
+						console.log(`Saved ${options.filepath}`);
 					}
 				}
 			);
 		} catch (err) {
 			console.error(err);
+		}
+	} else if (options.append === false) {
+		if (options.format === 'json') {
+			try {
+				// write json file
+				await fs.writeFile(`${options.filepath}.${options.format}`, JSON.stringify(data));
+				console.log(`Saved ${options.filepath}`);
+			} catch (err) {
+				console.error(err);
+			} 
+		} else if (options.format === 'csv') {
+			// covert to csv and over/write file
+			await fs.writeFile(
+				`${options.filepath}.${options.format}`, 
+				`${Papa.unparse(data, { header: true })}\n`,
+				(err) => {
+					if (err) {
+						console.err('Error: ', err);
+					} else {
+						console.log(`Saved ${options.filepath}`);
+					}
+				}
+			);
 		}
 	}
 }

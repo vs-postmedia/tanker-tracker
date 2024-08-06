@@ -7,6 +7,7 @@ let browser;
 const shipData = [];
 const emailId = 'home-login';
 const passId = 'home-password';
+const shipInfoFilepath = './data/ship-info-data';
 const inspectionDataFilepath = './data/inspection-data';
 const equasisUrl = 'https://www.equasis.org/EquasisWeb/public/HomePage?fs=HomePage';
 const userAgent =
@@ -28,11 +29,17 @@ async function init(data) {
     const loggedInPage = await loginToEquasis(page, password);
     
     // search ship info
-    const shipInfo = await fetchShipData(loggedInPage, data);
-    
-    // const shipData = await searchEquasis(loggedInPage, data);
-    console.log(shipInfo);
-    // saveData(inspectionData, inspectionDataFilepath, 'csv');
+    const equasisResults = await fetchShipData(loggedInPage, data);
+    console.log(equasisResults);
+
+    const shipInfo = equasisResults.map(d => d.ship_info);
+    const inspectionData = equasisResults.map(d => d.inspection_data);
+
+    console.log(shipInfo)
+    console.log(inspectionData)
+    console.log(inspectionData.reduce((acc, val) => acc.concat(val), []));
+    saveData(shipInfo, { filepath: shipInfoFilepath, format: 'csv', append: true });
+    saveData(inspectionData.reduce((acc, val) => acc.concat(val), []), { filepath: inspectionDataFilepath, format: 'csv', append: true });
 
     // close browser
     // await browser.close();
@@ -134,7 +141,6 @@ async function getShipInfo(page, imo, shipInfoSelector) {
     return shipDetails;
 }
 
-
 async function getInspectionData(page, imo) {
     // find & click the inspections tab
     try {
@@ -170,6 +176,10 @@ async function getInspectionData(page, imo) {
                 // console.log(`ROW CACHE: ${rowCache}`)
                 finalResults = [...rowCache, ...results];
             }
+
+            // create year column
+            results.year = parseInt(results[2].slice(-4));
+            
             // console.log(finalResults)
 
             // does ship have deficiencies?
