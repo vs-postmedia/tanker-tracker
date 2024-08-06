@@ -121,7 +121,7 @@ async function getCurrentShips(aisMessage) {
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
 
-	// console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
+	console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
 	// console.log(aisMessage)
 
 	// check navstatus to see if ship is moored or at anchor
