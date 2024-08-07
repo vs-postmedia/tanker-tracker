@@ -10,7 +10,7 @@ import ships_list from '../data/ships-list.json' assert { type: 'json' };
 import current_ships from '../data/current-ships.json' assert { type: 'json' };
 
 // VARS
-const runtime = 30; // how long websocket will stay open, in minutes
+const runtime = 10; // how long websocket will stay open, in minutes
 let socket;
 const ships_list_lookup = [];
 const current_ships_cache = [];
