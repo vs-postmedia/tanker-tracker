@@ -25,7 +25,7 @@ const ships_lookup_filepath = './data/ships-list';
 const current_ships_filepath = './data/current-ships';
 const static_ships_log_filepath = './logs/static-ships.log';
 
-async function aisStream(url, apiKey, bbox) {
+async function aisStream(url, apiKey) {
 	socket = new WebSocket(url);
 
 	// create polygons for terminal
