@@ -170,16 +170,19 @@ async function getShipStaticData(aisMessage) {
 
 	// if new IMO or ship not in `current_ships cache`
 	const imoExists = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	let etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
+	// let etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 	// ships sometimes update destination & ETA while moored, which leads to double counting
-	const isCached = current_ships.some(d => d.ImoNumber === data.ImoNumber);
+	const isRemoteCache = current_ships.some(d => d.ImoNumber === data.ImoNumber);
+	// this is written to current ships on script exit
+	let isLocalCache = current_ships_cache.length > 0 ? current_ships_cache.some(d => d.MMSI === data.MMSI) : false;
 
 	console.log(`IMO exists: ${imoExists}`);
-	console.log(`ETA exists: ${etaExists}`);
-	console.log(`Cached: ${isCached}`);
+	// console.log(`ETA exists: ${etaExists}`);
+	console.log(`localCache: ${isLocalCache}`);
+	console.log(`remoteCache: ${isRemoteCache}`);
 
-	if (!imoExists || (imoExists && !etaExists) || !isCached) {
-	// if (!imoExists || !isCached) {
+	// if (!imoExists || (imoExists && !etaExists) || !isCached) {
+	if (!imoExists || (!isRemoteCache && !isLocalCache)) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
@@ -194,6 +197,14 @@ async function getShipStaticData(aisMessage) {
 		data.time_utc = timestamp;
 		// determine terminal
 		data.terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
+
+		// save new ship in local cache (we'll save to disk on exit)
+		current_ships_cache.push({
+			ImoNumber: data.ImoNumber,
+			MMSI: data.MMSI,
+			Eta: timeArray,
+			terminal: data.terminal
+		});
 		
 		// update ships_data array & save full ship data to disk
 		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
