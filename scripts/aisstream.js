@@ -25,7 +25,7 @@ const ships_lookup_filepath = './data/ships-list';
 const remoteCache_filepath = './data/current-ships';
 const static_ships_log_filepath = './logs/static-ships.log';
 
-async function aisStream(url, apiKey) {
+async function openWebSocket(url, apiKey) {
 	socket = new WebSocket(url);
 
 	// create polygons for terminal
@@ -60,8 +60,9 @@ async function aisStream(url, apiKey) {
 	// on socket close
 	socket.addEventListener('close', (e) => {
 		if (e.code === 1006) {
+			// 1006 errors come up fairly often
 			console.log(`WebSocket connection closed with code 1006, trying to reconnect...`);
-			setTimeout(() => aisStream(url, apiKey), 5000);
+			setTimeout(() => openWebSocket(url, apiKey), 5000);
 		} else {
 			console.log(`WebSocket connection closed, code: ${e.code}`);
 			exitScript();
@@ -70,7 +71,7 @@ async function aisStream(url, apiKey) {
 
 	// error msg
 	socket.addEventListener('error', (e) => {
-		console.log(`Socket setup failed: ${JSON.parse(e)}`);
+		console.log(`Socket setup failed: ${JSON.stringify(e)}`);
 		exitScript();
 	});
 
@@ -86,7 +87,6 @@ async function aisStream(url, apiKey) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-			// console.log(`SSD: ${aisMessage.Message.ShipStaticData.Type} ${aisMessage.Message.ShipStaticData.Name}`);
 
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
@@ -149,6 +149,7 @@ async function getCurrentShips(aisMessage) {
 				shipDetails.terminal = getTerminal(positionReport.Latitude, positionReport.Longitude);
 
 				localCache.push(shipDetails);
+				// addToLocalCache(shipDetails)
 			}
 
 			console.log(`localCache: ${JSON.stringify(localCache)}`)
@@ -176,15 +177,11 @@ async function getShipStaticData(aisMessage) {
 
 	// if new IMO or ship not in local or remote (github) cache
 	const imoExists = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	// ships sometimes update destination & ETA while moored, which leads to double counting
-	// let etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 	// this is written to current ships on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
 	const isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
-	// let isLocalCache = localCache.length > 0 ? localCache.some(d => d.ImoNumber === data.ImoNumber) : false;
 
 	console.log(`IMO exists: ${imoExists}`);
-	// console.log(`ETA exists: ${etaExists}`);
 	console.log(`localCache: ${isLocalCache}`);
 	console.log(`remoteCache: ${isRemoteCache}`);
 
@@ -207,10 +204,6 @@ async function getShipStaticData(aisMessage) {
 
 		// save new ship in local cache (we'll save to disk on exit)
 		addToLocalCache(data);
-		// localCache.push({
-		// 	ImoNumber: data.ImoNumber,
-		// 	MMSI: data.MMSI
-		// });
 		
 		// update ships_data array & save full ship data to disk
 		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
@@ -223,10 +216,6 @@ async function getShipStaticData(aisMessage) {
 		if (!isLocalCache) {
 			// save new ship in local cache (we'll save to disk on exit)
 			addToLocalCache(data);
-			// localCache.push({
-			// 	ImoNumber: data.ImoNumber,
-			// 	MMSI: data.MMSI
-			// });
 		}
 	}
 }
@@ -276,7 +265,7 @@ async function init(url, apiKey) {
 	console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`);
 
 	// start web socket to aisstream
-	aisStream(url, apiKey);
+	openWebSocket(url, apiKey);
 
 	// convert runtime to ms
 	const streamDuration = (runtime * 60) * 1000;
