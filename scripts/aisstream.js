@@ -206,10 +206,11 @@ async function getShipStaticData(aisMessage) {
 		data.terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
 
 		// save new ship in local cache (we'll save to disk on exit)
-		localCache.push({
-			ImoNumber: data.ImoNumber,
-			MMSI: data.MMSI
-		});
+		addToLocalCache(data);
+		// localCache.push({
+		// 	ImoNumber: data.ImoNumber,
+		// 	MMSI: data.MMSI
+		// });
 		
 		// update ships_data array & save full ship data to disk
 		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
@@ -217,7 +218,24 @@ async function getShipStaticData(aisMessage) {
 		// save data to use for a lookup (using object destructuring)
 		updateLookupTable(data);
 		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: false });
+	} else {
+		// ships is cached remotely but not locally
+		if (!isLocalCache) {
+			// save new ship in local cache (we'll save to disk on exit)
+			addToLocalCache(data);
+			// localCache.push({
+			// 	ImoNumber: data.ImoNumber,
+			// 	MMSI: data.MMSI
+			// });
+		}
 	}
+}
+
+function addToLocalCache(data) {
+	localCache.push({
+		ImoNumber: data.ImoNumber,
+		MMSI: data.MMSI
+	});
 }
 
 // check if ship lat/lon is inside one of the defined terminal zones
