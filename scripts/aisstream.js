@@ -7,13 +7,13 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 // DATA
 import zones from '../data/zone-coords.json' assert { type: 'json' };
 import ships_list from '../data/ships-list.json' assert { type: 'json' };
-import current_ships from '../data/current-ships.json' assert { type: 'json' };
+import remoteCache from '../data/current-ships.json' assert { type: 'json' };
 
 // VARS
 const runtime = 30; // how long websocket will stay open, in minutes
 let socket;
 const ships_list_lookup = [];
-const current_ships_cache = [];
+const localCache = [];
 let ebay_poly, suncor_poly, westridge_poly; 
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
@@ -22,7 +22,7 @@ const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanke
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
 const ships_lookup_filepath = './data/ships-list';
-const current_ships_filepath = './data/current-ships';
+const remoteCache_filepath = './data/current-ships';
 const static_ships_log_filepath = './logs/static-ships.log';
 
 async function aisStream(url, apiKey) {
@@ -99,7 +99,8 @@ function calculateShipDimensions(data) {
 // shut ’er down!
 async function exitScript() {
 	// save the current ships cache to disk
-	await saveData(current_ships_cache, { filepath: current_ships_filepath, format: 'json', append: false });
+	console.log(`EXIT LOCAL CACHE: ${JSON.stringify(localCache)}`)
+	await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
 
 	// // run summary stats
 	// const data = await fetchShipData(`${ships_data_filepath}.csv`);
@@ -130,7 +131,7 @@ async function getCurrentShips(aisMessage) {
 		// get mmsi number
 		let mmsi = metaData.MMSI;
 		// is MMSI already in the cache of moored ships?
-		let shipCached = current_ships_cache.some(d => d.MMSI === mmsi);
+		let shipCached = localCache.some(d => d.MMSI === mmsi);
 		// console.log(`Ship cached: ${shipCached}`)
 
 		// if mmsi isn't cached as currently moored, do so.
@@ -142,12 +143,10 @@ async function getCurrentShips(aisMessage) {
 				let shipDetails = ship[0];
 				shipDetails.terminal = getTerminal(positionReport.Latitude, positionReport.Longitude);
 
-				// console.log(shipDetails)
-
-				current_ships_cache.push(shipDetails);
+				localCache.push(shipDetails);
 			}
 
-			// console.log(JSON.stringify(current_ships_cache))
+			console.log(`localCache: ${JSON.stringify(localCache)}`)
 			
 			// post announcement to social media
 			// postToTwitter(data);
@@ -160,6 +159,8 @@ async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 
 	console.log(`STATIC SHIP: ${data.Type} ${data.Name}`);
+	console.log(`LOCAL CACHE: ${JSON.stringify(localCache)}`)
+	console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`)
 
 	// timestamp to local ymd format
 	const timestamp = aisMessage.MetaData.time_utc;
@@ -168,13 +169,13 @@ async function getShipStaticData(aisMessage) {
 	// create array from Eta
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
-	// if new IMO or ship not in `current_ships cache`
+	// if new IMO or ship not in `remoteCache cache`
 	const imoExists = ships_list.some(d => d.ImoNumber === data.ImoNumber);
 	// let etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 	// ships sometimes update destination & ETA while moored, which leads to double counting
-	const isRemoteCache = current_ships.some(d => d.ImoNumber === data.ImoNumber);
+	const isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
 	// this is written to current ships on script exit
-	let isLocalCache = current_ships_cache.length > 0 ? current_ships_cache.some(d => d.MMSI === data.MMSI) : false;
+	let isLocalCache = localCache.length > 0 ? localCache.some(d => d.MMSI === data.MMSI) : false;
 
 	console.log(`IMO exists: ${imoExists}`);
 	// console.log(`ETA exists: ${etaExists}`);
@@ -199,7 +200,7 @@ async function getShipStaticData(aisMessage) {
 		data.terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
 
 		// save new ship in local cache (we'll save to disk on exit)
-		current_ships_cache.push({
+		localCache.push({
 			ImoNumber: data.ImoNumber,
 			MMSI: data.MMSI,
 			Eta: timeArray,
