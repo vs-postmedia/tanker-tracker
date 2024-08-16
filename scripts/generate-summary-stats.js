@@ -74,10 +74,10 @@ async function generateSummaryStats(data) {
     // console.log(shipsUnique)
 
     // save summary data files
-    saveData(shipsUnique, { filepath: `${directory}ships-unique`, format: 'csv', append: false });
-    saveData(shipsDaily, { filepath: `${directory}ships-daily`, format: 'csv', append: false });
-    saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
-    saveData(shipsCumulative, { filepath: `${directory}ships-cumulative`, format: 'csv', append: false });
+    await saveData(shipsUnique, { filepath: `${directory}ships-unique`, format: 'csv', append: false });
+    await saveData(shipsDaily, { filepath: `${directory}ships-daily`, format: 'csv', append: false });
+    await saveData(shipsMonthly, { filepath: `${directory}ships-monthly`, format: 'csv', append: false });
+    await saveData(shipsCumulative, { filepath: `${directory}ships-cumulative`, format: 'csv', append: false });
 }
 
 export default generateSummaryStats;

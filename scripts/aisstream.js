@@ -1,8 +1,11 @@
+import fs from 'fs';
 import WebSocket from 'ws';
+import Papa from 'papaparse';
 import saveData from './save-data.js';
 import { point, polygon } from '@turf/helpers';
 // import { postToTwitter } from './post-online.js';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import generateSummaryStats from './generate-summary-stats.js';
 
 // DATA
 import zones from '../data/zone-coords.json' assert { type: 'json' };
@@ -10,11 +13,11 @@ import ships_list from '../data/ships-list.json' assert { type: 'json' };
 import remoteCache from '../data/current-ships.json' assert { type: 'json' };
 
 // VARS
-const runtime = 30; // how long websocket will stay open, in minutes
 let socket;
 const localCache = [];
 const ships_list_lookup = [];
 let ebay_poly, suncor_poly, westridge_poly; 
+const runtime = 1; // how long websocket will stay open, in minutes
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -107,9 +110,9 @@ async function exitScript() {
 	console.log(`EXIT LOCAL CACHE: ${JSON.stringify(localCache)}`)
 	await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
 
-	// // run summary stats
-	// const data = await fetchShipData(`${ships_data_filepath}.csv`);
-	// await generateSummaryStats(data);
+	// run summary stats
+	const data = await fetchShipData(`${ships_data_filepath}.csv`);
+	await generateSummaryStats(data);
 
 	// close websocket
 	socket.close();
@@ -120,6 +123,23 @@ async function exitScript() {
 	process.exit(0);
 }
 
+async function fetchShipData(filepath) {
+	let data;
+    // read in the master csvfile
+    const file = fs.readFileSync(filepath, 'utf8');
+
+    // convert to json
+    Papa.parse(file, {
+        complete: (response) => {
+            // NEEDS ERROR LOG HERE
+			data = response.data;
+        },
+        delimiter: ',',
+        header: true
+    });
+	
+	return data;
+}
 
 // get currentShipPositions
 async function getCurrentShips(aisMessage) {
@@ -146,10 +166,10 @@ async function getCurrentShips(aisMessage) {
 				// fetch ship details from Equasis
 				// let shipDetails = await fetchShipDetails(ship[0]);
 				let shipDetails = ship[0];
-				shipDetails.terminal = getTerminal(positionReport.Latitude, positionReport.Longitude);
+				// shipDetails.terminal = getTerminal(positionReport.Latitude, positionReport.Longitude);
 
-				localCache.push(shipDetails);
-				// addToLocalCache(shipDetails)
+				// localCache.push(shipDetails);
+				addToLocalCache(shipDetails)
 			}
 
 			console.log(`localCache: ${JSON.stringify(localCache)}`)
