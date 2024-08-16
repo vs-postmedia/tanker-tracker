@@ -219,7 +219,7 @@ async function getShipStaticData(aisMessage) {
 		updateLookupTable(data);
 		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: false });
 	} else {
-		// ships is cached remotely but not locally
+		// ship is cached remotely but not locally
 		if (!isLocalCache) {
 			// save new ship in local cache (we'll save to disk on exit)
 			addToLocalCache(data);
