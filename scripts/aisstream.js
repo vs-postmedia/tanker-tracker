@@ -17,7 +17,7 @@ let socket;
 const localCache = [];
 const ships_list_lookup = [];
 let ebay_poly, suncor_poly, westridge_poly; 
-const runtime = 1; // how long websocket will stay open, in minutes
+const runtime = 30; // how long websocket will stay open, in minutes
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
