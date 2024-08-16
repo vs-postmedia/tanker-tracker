@@ -51,7 +51,7 @@ async function aisStream(url, apiKey) {
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
 
-		console.log(JSON.stringify(subscriptionMsg));
+		// console.log(JSON.stringify(subscriptionMsg));
 		
 		// open AISstream websocket
 		socket.send(JSON.stringify(subscriptionMsg));
@@ -59,8 +59,13 @@ async function aisStream(url, apiKey) {
 	
 	// on socket close
 	socket.addEventListener('close', (e) => {
-		console.log(`WebSocket connection closed, code: ${e.code}`);
-		exitScript();
+		if (e.code === 1006) {
+			console.log(`WebSocket connection closed with code 1006, trying to reconnect...`);
+			setTimeout(() => aisStream(url, apiKey), 5000);
+		} else {
+			console.log(`WebSocket connection closed, code: ${e.code}`);
+			exitScript();
+		}
 	});
 
 	// error msg
@@ -169,13 +174,14 @@ async function getShipStaticData(aisMessage) {
 	// create array from Eta
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
-	// if new IMO or ship not in `remoteCache cache`
+	// if new IMO or ship not in local or remote (github) cache
 	const imoExists = ships_list.some(d => d.ImoNumber === data.ImoNumber);
-	// let etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 	// ships sometimes update destination & ETA while moored, which leads to double counting
-	const isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
+	// let etaExists = ships_list.some(d => d.Eta ? d.Eta === timeArray : undefined);
 	// this is written to current ships on script exit
-	let isLocalCache = localCache.length > 0 ? localCache.some(d => d.MMSI === data.MMSI) : false;
+	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
+	const isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
+	// let isLocalCache = localCache.length > 0 ? localCache.some(d => d.ImoNumber === data.ImoNumber) : false;
 
 	console.log(`IMO exists: ${imoExists}`);
 	// console.log(`ETA exists: ${etaExists}`);
@@ -202,9 +208,7 @@ async function getShipStaticData(aisMessage) {
 		// save new ship in local cache (we'll save to disk on exit)
 		localCache.push({
 			ImoNumber: data.ImoNumber,
-			MMSI: data.MMSI,
-			Eta: timeArray,
-			terminal: data.terminal
+			MMSI: data.MMSI
 		});
 		
 		// update ships_data array & save full ship data to disk
