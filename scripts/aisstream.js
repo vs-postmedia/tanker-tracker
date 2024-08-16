@@ -12,8 +12,8 @@ import remoteCache from '../data/current-ships.json' assert { type: 'json' };
 // VARS
 const runtime = 30; // how long websocket will stay open, in minutes
 let socket;
-const ships_list_lookup = [];
 const localCache = [];
+const ships_list_lookup = [];
 let ebay_poly, suncor_poly, westridge_poly; 
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
@@ -250,6 +250,8 @@ function updateLookupTable(data) {
 
 async function init(url, apiKey) {
 	console.log(`Starting new script run: ${new Date()}`);
+
+	console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`);
 
 	// start web socket to aisstream
 	aisStream(url, apiKey);
