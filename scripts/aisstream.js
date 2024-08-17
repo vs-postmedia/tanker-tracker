@@ -17,7 +17,7 @@ let socket;
 const localCache = [];
 const shipsLookup_lookup = [];
 let ebay_poly, suncor_poly, westridge_poly; 
-const runtime = 30; // how long websocket will stay open, in minutes
+const runtime = 5; // how long websocket will stay open, in minutes
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -147,8 +147,7 @@ async function getCurrentShips(aisMessage) {
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
 
-	// console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
-	// console.log(aisMessage)
+	console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
 
 	// check navstatus to see if ship is moored or at anchor
 	// https://api.vesselfinder.com/docs/ref-navstat.html
@@ -197,11 +196,12 @@ async function getShipStaticData(aisMessage) {
 	const imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber);
 	// this is written to current ships on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
+	// ships cache loaded from github
 	const isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
 
-	// console.log(`IMO exists: ${imoExists}`);
-	// console.log(`localCache: ${isLocalCache}`);
-	// console.log(`remoteCache: ${isRemoteCache}`);
+	console.log(`IMO exists: ${imoExists}`);
+	console.log(`localCache: ${isLocalCache}`);
+	console.log(`remoteCache: ${isRemoteCache}`);
 
 	// if (!imoExists || (imoExists && !etaExists) || !isCached) {
 	if (!imoExists || (!isRemoteCache && !isLocalCache)) {
@@ -238,6 +238,7 @@ async function getShipStaticData(aisMessage) {
 	}
 }
 
+// add new ship to local cache to be saved on script exit
 function addToLocalCache(data) {
 	localCache.push({
 		ImoNumber: data.ImoNumber,
@@ -271,17 +272,16 @@ function getTerminal(lat,lon) {
 	return terminal;
 }
 
-// update a ship lookup table with imo, mmsi & eta from the full dataset
+// update a ship lookup table with imo & mmsi
 function updateLookupTable(data) {
-	// let lookup = (({ImoNumber, MMSI, Eta, Destination}) => ({ImoNumber, MMSI, Eta, Destination}))(data);
 	const lookup = (({ImoNumber, MMSI}) => ({ImoNumber, MMSI}))(data);
-	shipsLookup.push(lookup);
+	// remove dups
+	const lookupUnique = [... new Set(lookup)];
+	shipsLookup.push(lookupUnique);
 }
 
 async function init(url, apiKey) {
 	console.log(`Starting new script run: ${new Date()}`);
-
-	// console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`);
 
 	// start web socket to aisstream
 	openWebSocket(url, apiKey);
