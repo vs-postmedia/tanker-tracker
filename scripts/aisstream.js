@@ -17,7 +17,7 @@ let socket;
 const localCache = [];
 const shipsLookup_lookup = [];
 let ebay_poly, suncor_poly, westridge_poly; 
-const runtime = 5; // how long websocket will stay open, in minutes
+// const runtime = 5; // how long websocket will stay open, in minutes
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -181,7 +181,7 @@ async function getCurrentShips(aisMessage) {
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 
-	// console.log(`STATIC SHIP: ${data.Type} ${data.Name}`);
+	console.log(`STATIC SHIP: ${data.Type} ${data.Name}`);
 	// console.log(`LOCAL CACHE: ${JSON.stringify(localCache)}`)
 	// console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`)
 
@@ -277,10 +277,11 @@ function updateLookupTable(data) {
 	const lookup = (({ImoNumber, MMSI}) => ({ImoNumber, MMSI}))(data);
 	// remove dups
 	const lookupUnique = [... new Set(lookup)];
+	// push to array to save to disk
 	shipsLookup.push(lookupUnique);
 }
 
-async function init(url, apiKey) {
+async function init(url, apiKey, runtime) {
 	console.log(`Starting new script run: ${new Date()}`);
 
 	// start web socket to aisstream
