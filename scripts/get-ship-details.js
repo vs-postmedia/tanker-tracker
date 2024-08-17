@@ -1,3 +1,4 @@
+import fs from 'fs';
 import 'dotenv/config';
 import puppeteer from 'puppeteer';
 import saveData from './save-data.js';
@@ -5,19 +6,19 @@ import saveData from './save-data.js';
 // VARS
 let browser;
 const shipData = [];
-const emailId = 'home-login';
-const passId = 'home-password';
+const loginIdSelector = '#home-login';
+const passIdSelector = '#home-password';
+const loginAddress = process.env.LOGIN_EQUASIS;
 const shipInfoFilepath = './data/ship-info-data';
 const inspectionDataFilepath = './data/inspection-data';
 const equasisUrl = 'https://www.equasis.org/EquasisWeb/public/HomePage?fs=HomePage';
 const userAgent =
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
             '(KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36';
-
 const shipInfoSelector = '#body > section:nth-child(9) > div > div > div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div:nth-child(2) > div.col-lg-12.col-md-12.col-sm-12.col-xs-12 > div.access-item > div > div > div.col-lg-12.col-md-12.col-sm-12.col-xs-12';
 
 async function init(data) {
-    console.log(data)
+    console.log(data);
 
     // get equasis password
     const password = process.env.PASS_EQUASIS;
@@ -38,8 +39,19 @@ async function init(data) {
     console.log(shipInfo)
     console.log(inspectionData)
     console.log(inspectionData.reduce((acc, val) => acc.concat(val), []));
-    saveData(shipInfo, { filepath: shipInfoFilepath, format: 'csv', append: true });
-    saveData(inspectionData.reduce((acc, val) => acc.concat(val), []), { filepath: inspectionDataFilepath, format: 'csv', append: true });
+
+    // if we don't already have the shipinfo, save it
+    // const shipInfoExists = FUNCTION()
+    const shipInfoExists = false;
+    if (!shipInfoExists) {
+        saveData(shipInfo, { filepath: shipInfoFilepath, format: 'csv', append: true });
+    }
+
+    // if there is new inspection data, save it
+    const newInspectionData = false;
+    if (!newInspectionData) {
+        saveData(inspectionData.reduce((acc, val) => acc.concat(val), []), { filepath: inspectionDataFilepath, format: 'csv', append: true });
+    }
 
     // close browser
     // await browser.close();
@@ -61,10 +73,10 @@ async function loginToEquasis(page, password) {
     await page.waitForSelector('#home-login');
 
     // Type a username into the "username" input field with a delay between key presses.
-    await page.type('#home-login', 'ngriffiths@postmedia.com', { delay: 50 });
+    await page.type(loginIdSelector, loginAddress, { delay: 50 });
 
     // Type a password into the "password" input field with a delay between key presses.
-    await page.type('#home-password', password, { delay: 50 });
+    await page.type(passIdSelector, password, { delay: 50 });
 
     // Click the login button
     await page.click('.pull-right.btn.btn-lg.gris-bleu-copyright');
