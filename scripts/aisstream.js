@@ -9,7 +9,7 @@ import generateSummaryStats from './generate-summary-stats.js';
 
 // DATA
 import zones from '../data/zone-coords.json' assert { type: 'json' };
-import shipsLookup from '../data/ships-list.json' assert { type: 'json' };
+import shipsLookup from '../data/ships-lookup.json' assert { type: 'json' };
 import remoteCache from '../data/current-ships.json' assert { type: 'json' };
 
 // VARS
