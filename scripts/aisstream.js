@@ -9,13 +9,13 @@ import generateSummaryStats from './generate-summary-stats.js';
 
 // DATA
 import zones from '../data/zone-coords.json' assert { type: 'json' };
-import ships_list from '../data/ships-list.json' assert { type: 'json' };
+import shipsLookup from '../data/ships-list.json' assert { type: 'json' };
 import remoteCache from '../data/current-ships.json' assert { type: 'json' };
 
 // VARS
 let socket;
 const localCache = [];
-const ships_list_lookup = [];
+const shipsLookup_lookup = [];
 let ebay_poly, suncor_poly, westridge_poly; 
 const runtime = 30; // how long websocket will stay open, in minutes
 
@@ -160,7 +160,7 @@ async function getCurrentShips(aisMessage) {
 
 		// if mmsi isn't cached as currently moored, do so.
 		if (shipCached === false) {
-			const ship = ships_list.filter(d => d.MMSI === mmsi);
+			const ship = shipsLookup.filter(d => d.MMSI === mmsi);
 			if (ship.length > 0) {
 				// fetch ship details from Equasis
 				// let shipDetails = await fetchShipDetails(ship[0]);
@@ -194,7 +194,7 @@ async function getShipStaticData(aisMessage) {
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
 	// if new IMO or ship not in local or remote (github) cache
-	const imoExists = ships_list.some(d => d.ImoNumber === data.ImoNumber);
+	const imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber);
 	// this is written to current ships on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
 	const isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
@@ -228,7 +228,7 @@ async function getShipStaticData(aisMessage) {
 
 		// save data to use for a lookup (using object destructuring)
 		updateLookupTable(data);
-		await saveData(ships_list, { filepath: ships_lookup_filepath, format: 'json', append: false });
+		await saveData(shipsLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 	} else {
 		// ship is cached remotely but not locally
 		if (!isLocalCache) {
@@ -273,8 +273,9 @@ function getTerminal(lat,lon) {
 
 // update a ship lookup table with imo, mmsi & eta from the full dataset
 function updateLookupTable(data) {
-	let lookup = (({ImoNumber, MMSI, Eta, Destination}) => ({ImoNumber, MMSI, Eta, Destination}))(data);
-	ships_list.push(lookup);
+	// let lookup = (({ImoNumber, MMSI, Eta, Destination}) => ({ImoNumber, MMSI, Eta, Destination}))(data);
+	const lookup = (({ImoNumber, MMSI}) => ({ImoNumber, MMSI}))(data);
+	shipsLookup.push(lookup);
 }
 
 async function init(url, apiKey) {
