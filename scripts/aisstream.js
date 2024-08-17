@@ -147,7 +147,7 @@ async function getCurrentShips(aisMessage) {
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
 
-	console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
+	// console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
 	// console.log(aisMessage)
 
 	// check navstatus to see if ship is moored or at anchor
@@ -157,7 +157,6 @@ async function getCurrentShips(aisMessage) {
 		let mmsi = metaData.MMSI;
 		// is MMSI already in the cache of moored ships?
 		let shipCached = localCache.some(d => d.MMSI === mmsi);
-		// console.log(`Ship cached: ${shipCached}`)
 
 		// if mmsi isn't cached as currently moored, do so.
 		if (shipCached === false) {
@@ -166,13 +165,12 @@ async function getCurrentShips(aisMessage) {
 				// fetch ship details from Equasis
 				// let shipDetails = await fetchShipDetails(ship[0]);
 				let shipDetails = ship[0];
-				// shipDetails.terminal = getTerminal(positionReport.Latitude, positionReport.Longitude);
 
 				// localCache.push(shipDetails);
 				addToLocalCache(shipDetails)
 			}
 
-			console.log(`localCache: ${JSON.stringify(localCache)}`)
+			// console.log(`localCache: ${JSON.stringify(localCache)}`)
 			
 			// post announcement to social media
 			// postToTwitter(data);
@@ -184,9 +182,9 @@ async function getCurrentShips(aisMessage) {
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 
-	console.log(`STATIC SHIP: ${data.Type} ${data.Name}`);
-	console.log(`LOCAL CACHE: ${JSON.stringify(localCache)}`)
-	console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`)
+	// console.log(`STATIC SHIP: ${data.Type} ${data.Name}`);
+	// console.log(`LOCAL CACHE: ${JSON.stringify(localCache)}`)
+	// console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`)
 
 	// timestamp to local ymd format
 	const timestamp = aisMessage.MetaData.time_utc;
@@ -201,9 +199,9 @@ async function getShipStaticData(aisMessage) {
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
 	const isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
 
-	console.log(`IMO exists: ${imoExists}`);
-	console.log(`localCache: ${isLocalCache}`);
-	console.log(`remoteCache: ${isRemoteCache}`);
+	// console.log(`IMO exists: ${imoExists}`);
+	// console.log(`localCache: ${isLocalCache}`);
+	// console.log(`remoteCache: ${isRemoteCache}`);
 
 	// if (!imoExists || (imoExists && !etaExists) || !isCached) {
 	if (!imoExists || (!isRemoteCache && !isLocalCache)) {
@@ -282,7 +280,7 @@ function updateLookupTable(data) {
 async function init(url, apiKey) {
 	console.log(`Starting new script run: ${new Date()}`);
 
-	console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`);
+	// console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`);
 
 	// start web socket to aisstream
 	openWebSocket(url, apiKey);
