@@ -13,7 +13,7 @@ const passIdSelector = '#home-password';
 const loginAddress = process.env.LOGIN_EQUASIS;
 const shipInfoFilepath = './data/ship-info-data';
 const inspectionDataFilepath = './data/inspection-data';
-const isHeadless = process.env.MODE = 'production' ? true : false;
+const isHeadless = process.env.USER = 'runner' ? false : true;
 const equasisUrl = 'https://www.equasis.org/EquasisWeb/public/HomePage?fs=HomePage';
 const userAgent =
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +

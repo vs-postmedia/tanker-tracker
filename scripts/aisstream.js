@@ -275,10 +275,12 @@ function getTerminal(lat,lon) {
 // update a ship lookup table with imo & mmsi
 function updateLookupTable(data) {
 	const lookup = (({ImoNumber, MMSI, terminal}) => ({ImoNumber, MMSI, terminal}))(data);
-	// remove dups
-	const lookupUnique = [... new Set(lookup)];
+
 	// push to array to save to disk
-	shipsLookup.push(lookupUnique);
+	shipsLookup.push(lookup);
+	
+	// remove dups
+	return [... new Set(shipsLookup)];
 }
 
 async function init(url, apiKey, runtime) {
