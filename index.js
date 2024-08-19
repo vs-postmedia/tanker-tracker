@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import aisStream from './scripts/aisstream.js';
-import getShipDetails from './scripts/get-ship-details.js';
+// import getShipDetails from './scripts/get-ship-details.js';
 
 // VARS
 const runtime = 30; // how long websocket will stay open, in minutes
