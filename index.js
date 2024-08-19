@@ -18,7 +18,6 @@ async function init() {
 	
 	// open streams
 	aisStream.init(aisWs, aisApiKey, runtime);
-	aisStream.init(aisWs, aisApiKey);
 
 	// getShipDetails.init(data)
 }
