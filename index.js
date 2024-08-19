@@ -17,7 +17,7 @@ async function init() {
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
 	
 	// open streams
-	aisStream.init(aisWs, aisApiKey, runtime);
+	// aisStream.init(aisWs, aisApiKey, runtime);
 	// aisStream.init(aisWs, aisApiKey);
 
 	getShipDetails.init(data)

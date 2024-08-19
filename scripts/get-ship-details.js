@@ -13,6 +13,7 @@ const passIdSelector = '#home-password';
 const loginAddress = process.env.LOGIN_EQUASIS;
 const shipInfoFilepath = './data/ship-info-data';
 const inspectionDataFilepath = './data/inspection-data';
+const isHeadless = process.env.MODE = 'production' ? true : false;
 const equasisUrl = 'https://www.equasis.org/EquasisWeb/public/HomePage?fs=HomePage';
 const userAgent =
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
@@ -91,72 +92,6 @@ async function fetchShipData(page, data) {
     }
 
     return shipData;
-}
-
-async function loginToEquasis(page, password) {
-    // Wait for login elements to appear on the page.
-    await page.waitForSelector('#home-login');
-
-    // Type a username into the "username" input field with a delay between key presses.
-    await page.type(loginIdSelector, loginAddress, { delay: 50 });
-
-    // Type a password into the "password" input field with a delay between key presses.
-    await page.type(passIdSelector, password, { delay: 50 });
-
-    // Click the login button
-    await page.click('.pull-right.btn.btn-lg.gris-bleu-copyright');
-
-    return page;
-}
-
-async function setupPage(url) {
-    // Launch the browser and open a new blank page
-    /*
-    *** use process.env.MODE TO SET HEADLESS VAR BASED ON ENVIRONMENT!!! ***
-    */
-    browser = await puppeteer.launch({ headless: false });
-    const page = await browser.newPage();
-    await page.setUserAgent(userAgent);
-
-    // Navigate the page to a URL
-    await page.goto(url, {waitUntil: 'networkidle2'});
-
-    // Set screen size.
-    await page.setViewport({width: 1080, height: 1024});
-
-    return page;
-}
-
-async function searchEquasis(page, data) {
-    console.log(data)
-    // go to home page
-    await page.click('.navbar-nav a[href*="HomePage"]');
-
-    // Wait for search box to appear
-    await page.waitForSelector('#P_ENTREE_HOME');
-
-    // Type an IMO number into the "imo" input field with a delay between key presses.
-    await page.type('#P_ENTREE_HOME', data.ImoNumber.toString(), { delay: 75 });
-
-    // Click the search button
-    await page.click('.btn.btn-default');
-
-    // find & click the link matching the IMO number
-    const imoSelector = `a[onclick*="${data.ImoNumber}"]`;
-    await page.waitForSelector(imoSelector);
-    await page.click(imoSelector);
-
-    // collect ship info
-    let shipInfo = await getShipInfo(page, data.ImoNumber, shipInfoSelector);
-
-    // collect inspection data
-    let inspectionData = await getInspectionData(page, data.ImoNumber);
-
-    // console.log(inspectionData)
-    return {
-        ship_info: shipInfo,
-        inspection_data: inspectionData
-    };
 }
 
 async function getShipInfo(page, imo, shipInfoSelector) {
@@ -248,6 +183,73 @@ async function getInspectionData(page, imo) {
 
     return inspectionData;
 }
+
+async function loginToEquasis(page, password) {
+    // Wait for login elements to appear on the page.
+    await page.waitForSelector('#home-login');
+
+    // Type a username into the "username" input field with a delay between key presses.
+    await page.type(loginIdSelector, loginAddress, { delay: 50 });
+
+    // Type a password into the "password" input field with a delay between key presses.
+    await page.type(passIdSelector, password, { delay: 50 });
+
+    // Click the login button
+    await page.click('.pull-right.btn.btn-lg.gris-bleu-copyright');
+
+    return page;
+}
+
+async function setupPage(url) {
+    // Launch the browser and open a new blank page
+    /*
+    *** use process.env.MODE TO SET HEADLESS VAR BASED ON ENVIRONMENT!!! ***
+    */
+    browser = await puppeteer.launch({ headless: isHeadless });
+    const page = await browser.newPage();
+    await page.setUserAgent(userAgent);
+
+    // Navigate the page to a URL
+    await page.goto(url, {waitUntil: 'networkidle2'});
+
+    // Set screen size.
+    await page.setViewport({width: 1080, height: 1024});
+
+    return page;
+}
+
+async function searchEquasis(page, data) {
+    console.log(data)
+    // go to home page
+    await page.click('.navbar-nav a[href*="HomePage"]');
+
+    // Wait for search box to appear
+    await page.waitForSelector('#P_ENTREE_HOME');
+
+    // Type an IMO number into the "imo" input field with a delay between key presses.
+    await page.type('#P_ENTREE_HOME', data.ImoNumber.toString(), { delay: 75 });
+
+    // Click the search button
+    await page.click('.btn.btn-default');
+
+    // find & click the link matching the IMO number
+    const imoSelector = `a[onclick*="${data.ImoNumber}"]`;
+    await page.waitForSelector(imoSelector);
+    await page.click(imoSelector);
+
+    // collect ship info
+    let shipInfo = await getShipInfo(page, data.ImoNumber, shipInfoSelector);
+
+    // collect inspection data
+    let inspectionData = await getInspectionData(page, data.ImoNumber);
+
+    // console.log(inspectionData)
+    return {
+        ship_info: shipInfo,
+        inspection_data: inspectionData
+    };
+}
+
 
 
 export default { init };
