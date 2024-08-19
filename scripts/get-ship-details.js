@@ -22,6 +22,7 @@ const shipInfoSelector = '#body > section:nth-child(9) > div > div > div.col-lg-
 
 async function init(data) {
     console.log(data);
+    console.log(isHeadless)
 
     const storedShipDetails = await fetchStoredShipData(shipInfoFilepath);
 
