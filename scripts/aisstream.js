@@ -3,7 +3,6 @@ import WebSocket from 'ws';
 import Papa from 'papaparse';
 import saveData from './save-data.js';
 import { point, polygon } from '@turf/helpers';
-// import getShipDetails from './get-ship-details';
 // import { postToTwitter } from './post-online.js';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import generateSummaryStats from './generate-summary-stats.js';
@@ -148,7 +147,7 @@ async function getCurrentShips(aisMessage) {
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
 
-	console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
+	// console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
 
 	// check navstatus to see if ship is moored or at anchor
 	// https://api.vesselfinder.com/docs/ref-navstat.html
