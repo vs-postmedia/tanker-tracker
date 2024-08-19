@@ -1,11 +1,13 @@
 import fs from 'fs';
 import 'dotenv/config';
+import Papa from 'papaparse';
 import puppeteer from 'puppeteer';
 import saveData from './save-data.js';
 
 // VARS
 let browser;
 const shipData = [];
+const shipsToSave = [];
 const loginIdSelector = '#home-login';
 const passIdSelector = '#home-password';
 const loginAddress = process.env.LOGIN_EQUASIS;
@@ -20,6 +22,8 @@ const shipInfoSelector = '#body > section:nth-child(9) > div > div > div.col-lg-
 async function init(data) {
     console.log(data);
 
+    const storedShipDetails = await fetchStoredShipData(shipInfoFilepath);
+
     // get equasis password
     const password = process.env.PASS_EQUASIS;
 
@@ -31,30 +35,51 @@ async function init(data) {
     
     // search ship info
     const equasisResults = await fetchShipData(loggedInPage, data);
-    console.log(equasisResults);
 
     const shipInfo = equasisResults.map(d => d.ship_info);
     const inspectionData = equasisResults.map(d => d.inspection_data);
 
-    console.log(shipInfo)
-    console.log(inspectionData)
-    console.log(inspectionData.reduce((acc, val) => acc.concat(val), []));
-
     // if we don't already have the shipinfo, save it
-    // const shipInfoExists = FUNCTION()
-    const shipInfoExists = false;
-    if (!shipInfoExists) {
-        saveData(shipInfo, { filepath: shipInfoFilepath, format: 'csv', append: true });
+    for (const ship of shipInfo) {
+        const shipInfoExists = storedShipDetails.some(d => parseInt(ship.imo_number) === parseInt(d.imo_number));
+
+        if (!shipInfoExists) { shipsToSave.push(ship); }
+    };
+
+    // add new ships to our database
+    if (shipsToSave.length > 0) {
+        await saveData(shipsToSave, { filepath: shipInfoFilepath, format: 'csv', append: true });
     }
 
     // if there is new inspection data, save it
-    const newInspectionData = false;
-    if (!newInspectionData) {
-        saveData(inspectionData.reduce((acc, val) => acc.concat(val), []), { filepath: inspectionDataFilepath, format: 'csv', append: true });
-    }
+    // console.log(inspectionData)
+    // what's this do??? de-dup? YES // [...new Set(inspectionData)] 
+    // console.log(inspectionData.reduce((acc, val) => acc.concat(val), []));
+    // const newInspectionData = false;
+    // if (!newInspectionData) {
+    //     await saveData(inspectionData.reduce((acc, val) => acc.concat(val), []), { filepath: inspectionDataFilepath, format: 'csv', append: true });
+    // }
 
     // close browser
-    // await browser.close();
+    browser.close();
+}
+
+async function fetchStoredShipData(filepath) {
+	let data;
+    // read in the master csvfile
+    const file = fs.readFileSync(`${filepath}.csv`, 'utf8');
+
+    // convert to json
+    Papa.parse(file, {
+        complete: (response) => {
+            // NEEDS ERROR LOG HERE
+			data = response.data;
+        },
+        delimiter: ',',
+        header: true
+    });
+	
+	return data;
 }
 
 async function fetchShipData(page, data) {
@@ -86,6 +111,9 @@ async function loginToEquasis(page, password) {
 
 async function setupPage(url) {
     // Launch the browser and open a new blank page
+    /*
+    *** use process.env.MODE TO SET HEADLESS VAR BASED ON ENVIRONMENT!!! ***
+    */
     browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
     await page.setUserAgent(userAgent);

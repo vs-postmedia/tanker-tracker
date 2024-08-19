@@ -6,7 +6,8 @@ const aisWs = 'wss://stream.aisstream.io/v0/stream'; // AISStream websocket
 
 const data = [
     {"ImoNumber":9374507,"MMSI":636013897,"date":"2024-06-26"},
-    {"ImoNumber":9470131,"MMSI":538006204,"date":"2024-08-26"}
+    {"ImoNumber":9470131,"MMSI":538006204,"date":"2024-08-26"},
+	{"ImoNumber":9829095,"MMSI":538006204,"date":"2024-08-18"}
 ];
 
 async function init() {
