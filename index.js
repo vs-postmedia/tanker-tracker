@@ -15,6 +15,10 @@ const data = [
 
 async function init() {
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
+	console.log(`ENVIRONMENT: ${JSON.stringify(process.env.LOGNAME)}`)
+	console.log(`ENVIRONMENT: ${JSON.stringify(process.env.USER)}`)
+	console.log(`ENVIRONMENT: ${JSON.stringify(process.env.COMMAND_MODE)}`)
+	console.log(`ENVIRONMENT: ${JSON.stringify(process.env.XPC_SERVICE_NAME)}`)
 	
 	// open streams
 	aisStream.init(aisWs, aisApiKey, runtime);
