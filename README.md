@@ -4,6 +4,8 @@ Tracker for oil tankers in and out of the Westridge & Suncor oil terminals in Va
 
 App uses [aisstream.io](https://aisstream.io/) to track tankers moored at Vancouver’s two oil terminals with the aim of creating a historical record of oil tanker traffic and to provide real-time updates about tanker movement in and out of the terminals.
 
+Additional ship details are sourced from [Equasis.org](https://www.equasis.org/).
+
 ## Requirements
 
 1. API Key from [aisstream.io](https://aisstream.io/)
