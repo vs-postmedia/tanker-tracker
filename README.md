@@ -27,7 +27,7 @@ Local & remote (github actions) scripts expect the following environment (.env) 
 | Destination | string | Ship’s reported destination (does not appear to be in a standardized format) |
 | Dimension | string | In the format [Length]:[width] (in metres) |
 | Dte | boolean | Data Terminal Equipment |
-| Eta | string | In the format [Year,Month,Day,Hour,Minute] (24-hour format). This metric has been modified from the standard AIS format |
+| Eta | string | In the format [Year,Month,Day,Hour,Minute] (24-hour format). The format has been modified from the standard AIS format |
 | FixType | int | ??? |
 | ImoNumber | int | 7-digit identified assigned to ships for their lifetime |
 | MaximumStaticDraught | double | Max vertical distance between the waterline and the bottom of the hull (in metres) |
