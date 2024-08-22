@@ -14,6 +14,7 @@ const data = [
 ];
 
 async function init() {
+	console.log(process.version)
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
 	// console.log(`LOGNAME: ${JSON.stringify(process.env.LOGNAME)}`)
 	// console.log(`USER: ${JSON.stringify(process.env.USER)}`)
@@ -23,7 +24,7 @@ async function init() {
 	// open streams
 	aisStream.init(aisWs, aisApiKey, runtime);
 
-	getShipDetails.init(data);
+	// getShipDetails.init(data);
 }
 
 // kick isht off!!!
