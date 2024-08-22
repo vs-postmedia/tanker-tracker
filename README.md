@@ -1,8 +1,8 @@
 # Burrard Inlet tanker tracker
 
-Tracker for oil tankers in and out of the Westridge & Suncor oil terminals in Vancouver. Data collection began May 1, 2024, when the TransMountain Expansion (TMX) came online.
+Tracker for oil tankers in and out of the Westridge & Suncor oil terminals in Vancouver. Data collection began May 1, 2024, when the TransMountain Expansion (TMX) pipeline came online.
 
-App uses AisStream.js to track tankers moored at Vancouver’s two oil terminals with the aim of creating a historical record of oil tanker traffic and to provide real-time updates about tanker movement into and out of the terminals.
+App uses [aisstream.io](https://aisstream.io/) to track tankers moored at Vancouver’s two oil terminals with the aim of creating a historical record of oil tanker traffic and to provide real-time updates about tanker movement in and out of the terminals.
 
 ## Requirements
 
