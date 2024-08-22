@@ -21,8 +21,8 @@ const userAgent =
 const shipInfoSelector = '#body > section:nth-child(9) > div > div > div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div:nth-child(2) > div.col-lg-12.col-md-12.col-sm-12.col-xs-12 > div.access-item > div > div > div.col-lg-12.col-md-12.col-sm-12.col-xs-12';
 
 async function init(data) {
-    console.log(data);
-    console.log(isHeadless)
+    console.log(`DATA: ${JSON.stringify(data)}`);
+    console.log(`HEADLESS: ${isHeadless}`);
 
     const storedShipDetails = await fetchStoredShipData(shipInfoFilepath);
 
