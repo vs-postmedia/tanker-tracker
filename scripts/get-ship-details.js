@@ -13,7 +13,7 @@ const passIdSelector = '#home-password';
 const loginAddress = process.env.LOGIN_EQUASIS;
 const shipInfoFilepath = './data/ship-info-data';
 const inspectionDataFilepath = './data/inspection-data';
-const isHeadless = process.env.USER = 'runner' ? false : true;
+const isHeadless = process.env.LOGNAME === undefined ? true : false;
 const equasisUrl = 'https://www.equasis.org/EquasisWeb/public/HomePage?fs=HomePage';
 const userAgent =
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
@@ -22,6 +22,7 @@ const shipInfoSelector = '#body > section:nth-child(9) > div > div > div.col-lg-
 
 async function init(data) {
     console.log(`DATA: ${JSON.stringify(data)}`);
+    console.log(`LOGNAME: ${process.env.LOGNAME}`)
     console.log(`HEADLESS: ${isHeadless}`);
 
     const storedShipDetails = await fetchStoredShipData(shipInfoFilepath);
@@ -63,7 +64,10 @@ async function init(data) {
     // }
 
     // close browser
-    browser.close();
+   await browser.close();
+
+   	// exit script
+	process.exit(0);
 }
 
 async function fetchStoredShipData(filepath) {

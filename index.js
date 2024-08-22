@@ -15,15 +15,15 @@ const data = [
 
 async function init() {
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
-	console.log(`LOGNAME: ${JSON.stringify(process.env.LOGNAME)}`)
-	console.log(`USER: ${JSON.stringify(process.env.USER)}`)
-	console.log(`COMMAND_MODE: ${JSON.stringify(process.env.COMMAND_MODE)}`)
-	console.log(`XPC_SERVICE_NAME: ${JSON.stringify(process.env.XPC_SERVICE_NAME)}`)
+	// console.log(`LOGNAME: ${JSON.stringify(process.env.LOGNAME)}`)
+	// console.log(`USER: ${JSON.stringify(process.env.USER)}`)
+	// console.log(`COMMAND_MODE: ${JSON.stringify(process.env.COMMAND_MODE)}`)
+	// console.log(`XPC_SERVICE_NAME: ${JSON.stringify(process.env.XPC_SERVICE_NAME)}`)
 	
 	// open streams
 	aisStream.init(aisWs, aisApiKey, runtime);
 
-	// getShipDetails.init(data);
+	getShipDetails.init(data);
 }
 
 // kick isht off!!!
