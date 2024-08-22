@@ -1,30 +1,43 @@
 # Burrard Inlet tanker tracker
 
-Tracker for oil tankers in and out of the Westridge terminal in Vancouver Harbour - terminus of the $34 billion TransCanada pipeline that came online on May 1, 2024.
+Tracker for oil tankers in and out of the Westridge & Suncor oil terminals in Vancouver. Data collection began May 1, 2024, when the TransMountain Expansion (TMX) came online.
 
-App uses AisStream.js to tracking tankers moored at the Westridge terminal with the aim of creating a historical record of tanker traffic at Burnaby’s Westridge terminal (and by extension, Vancouver Harbour) and to provide real-time updates about tanker movement into and out of the terminal.
+App uses AisStream.js to track tankers moored at Vancouver’s two oil terminals with the aim of creating a historical record of oil tanker traffic and to provide real-time updates about tanker movement into and out of the terminals.
 
-## Data Dictionary
+## Requirements
+
+1. API Key from [aisstream.io](https://aisstream.io/)
+2. Account for [Equasis.org](https://www.equasis.org/)
+
+Local & remote (github actions) scripts expect the following environment (.env) variables:
+- API_KEY_AISSTREAM='xxx'
+- PASS_EQUASIS='xxx'
+- LOGIN_EQUASIS='xxx'
+
+<em>NOTE: I have not yet tested a clean install from the github repo. There will almost certainly be bugs.</em>
+
+## AIS Data Dictionary
+### (ships-data.csv)
 
 | Variable | Format | Description |
 | --- | --- | --- |
 | AisVersion | int | Either 1 or 2 |
-| CallSign | string | Unique alphanumeric ID used for radio communications |
+| CallSign | string | Unique alphanumeric ID used by ships for radio communications |
 | Destination | string | Ship’s reported destination (does not appear to be in a standardized format) |
 | Dimension | string | In the format [Length]:[width] (in metres) |
 | Dte | boolean | Data Terminal Equipment |
 | Eta | string | In the format [Year,Month,Day,Hour,Minute] (24-hour format). This metric has been modified from the standard AIS format |
-| FixType | int | |
+| FixType | int | ??? |
 | ImoNumber | int | 7-digit identified assigned to ships for their lifetime |
 | MaximumStaticDraught | double | Max vertical distance between the waterline and the bottom of the hull (in metres) |
-| MessageID | int |  |
+| MessageID | int | ??? |
 | Name | string | Registered name of the ship |
-| RepeatIndicator | int  |
-| Spare | boolean | |
-| Type | int | |
-| UserID | int | |
-| Valid| boolean | |
+| RepeatIndicator | int | ???? |
+| Spare | boolean | ??? |
+| Type | int | ??? |
+| UserID | int | ??? |
+| Valid| boolean | ??? |
 | date | string | In the format [YYYY-MM-DD]. Based on time_utc timestamp |
 | MMSI | int | Maritime Mobile Service Identity. 9-digit number. Can change over time |
 | time_utc | string | utc datetime |
-| terminal | string | Either Westridge or Suncor |
+| terminal | string | Either Westridge or Suncor. Based on boundary boxes defined in data/zone-coords.json |
