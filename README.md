@@ -16,8 +16,7 @@ Local & remote (github actions) scripts expect the following environment (.env) 
 
 <em>NOTE: I have not yet tested a clean install from the github repo. There will almost certainly be bugs.</em>
 
-## AIS Data Dictionary
-### (ships-data.csv)
+## AIS Data Dictionary (ships-data.csv)
 
 | Variable | Format | Description |
 | --- | --- | --- |
