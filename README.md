@@ -8,8 +8,8 @@ Additional ship details are sourced from [Equasis.org](https://www.equasis.org/)
 
 ## Requirements
 
-1. API Key from [aisstream.io](https://aisstream.io/)
-2. Account for [Equasis.org](https://www.equasis.org/)
+1. API Key from [aisstream.io](https://aisstream.io/authenticate)
+2. Account for [Equasis.org](https://www.equasis.org/EquasisWeb/public/ConditionsRegistration?fs=HomePage)
 
 Local & remote (github actions) scripts expect the following environment (.env) variables:
 - API_KEY_AISSTREAM='xxx'
