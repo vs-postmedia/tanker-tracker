@@ -41,4 +41,4 @@ Local & remote (github actions) scripts expect the following environment (.env) 
 | date | string | In the format [YYYY-MM-DD]. Based on time_utc timestamp |
 | MMSI | int | Maritime Mobile Service Identity. 9-digit number. Can change over time |
 | time_utc | string | utc datetime |
-| terminal | string | Either Westridge or Suncor. Based on boundary boxes defined in data/zone-coords.json |
+| terminal | string | Either Westridge or Suncor. Based on boundary boxes defined in [data/zone-coords.json](https://github.com/vs-postmedia/tanker-tracker/blob/master/data/zone-coords.json) |
