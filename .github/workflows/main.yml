@@ -30,6 +30,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      
+      - name: Verify Node.js version
+        run: node -v # print nodejs version
 
       # Install needed libs
       - name: Install dependencies
