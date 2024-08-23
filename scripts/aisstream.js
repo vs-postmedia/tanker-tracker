@@ -207,7 +207,7 @@ async function getShipStaticData(aisMessage) {
 	console.log(`remoteCache: ${isRemoteCache}`);
 
 	// if (!imoExists || (imoExists && !etaExists) || !isCached) {
-	if (!imoExists || (!isRemoteCache && !isLocalCache)) {
+	if (!imoExists || !isRemoteCache || !isLocalCache) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
