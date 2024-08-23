@@ -8,9 +8,12 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import generateSummaryStats from './generate-summary-stats.js';
 
 // DATA
-import zones from '../data/zone-coords.json' assert { type: 'json' };
-import shipsLookup from '../data/ships-lookup.json' assert { type: 'json' };
-import remoteCache from '../data/current-ships.json' assert { type: 'json' };
+// import zones from '../data/zone-coords.json' assert { type: 'json' };
+// import shipsLookup from '../data/ships-lookup.json' assert { type: 'json' };
+// import remoteCache from '../data/current-ships.json' assert { type: 'json' };
+import zones from '../data/zone-coords.js';
+import shipsLookup from '../data/ships-lookup.js';
+import remoteCache from '../data/current-ships.js';
 
 // VARS
 let socket;
@@ -54,7 +57,7 @@ async function openWebSocket(url, apiKey) {
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
 
-		// console.log(JSON.stringify(subscriptionMsg));
+		console.log(JSON.stringify(subscriptionMsg.FilterMessageTypes));
 		
 		// open AISstream websocket
 		socket.send(JSON.stringify(subscriptionMsg));
