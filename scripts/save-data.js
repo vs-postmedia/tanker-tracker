@@ -28,7 +28,7 @@ async function saveData(data, options) {
 		if (options.format === 'json') {
 			try {
 				// write json file
-				await fs.writeFile(`${options.filepath}.${options.format}`, JSON.stringify(data));
+				await fs.writeFile(`${options.filepath}.js`, `export default ${JSON.stringify(data)}`);
 				console.log(`Saved ${options.filepath}`);
 			} catch (err) {
 				console.error(err);
