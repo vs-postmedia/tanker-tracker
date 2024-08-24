@@ -37,7 +37,6 @@ async function init(data) {
     const loggedInPage = await loginToEquasis(page, password);
     
     // search ship info
-    console.log(loggedInPage)
     const equasisResults = await fetchShipData(loggedInPage, data);
 
     const shipInfo = equasisResults.map(d => d.ship_info);
@@ -102,6 +101,8 @@ async function fetchShipData(page, data) {
 
 async function getShipInfo(page, imo, shipInfoSelector) {
     // console.log(shipInfoSelector);
+    await page.waitForSelector(shipInfoSelector);
+    
     const shipDetails = await page.evaluate((imo, selector) => {
         const table = document.querySelector(selector);
         const rows = Array.from(table.querySelectorAll('.row'));
@@ -241,7 +242,13 @@ async function searchEquasis(page, data) {
     // find & click the link matching the IMO number
     const imoSelector = `a[onclick*="${data.ImoNumber}"]`;
     await page.waitForSelector(imoSelector);
-    await page.click(imoSelector);
+
+     // Navigation happens here, so we need to wait for it to complete
+    await Promise.all([
+        page.click(imoSelector),
+        page.waitForNavigation({ waitUntil: 'networkidle0'})
+    ]);
+    // await page.click(imoSelector);
 
     // collect ship info
     let shipInfo = await getShipInfo(page, data.ImoNumber, shipInfoSelector);
