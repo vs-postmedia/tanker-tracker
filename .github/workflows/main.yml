@@ -44,6 +44,8 @@ jobs:
       - name: Run the scraper
         env:
           API_KEY_AISSTREAM: ${{ secrets.API_KEY_AISSTREAM }}
+          LOGIN_EQUASIS: ${{ secrets.LOGIN_EQUASIS }}
+          PASS_EQUASIS: ${{ secrets.PASS_EQUASIS }}
         run: |
           node index.js
 
