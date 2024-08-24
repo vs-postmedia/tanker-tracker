@@ -25,10 +25,19 @@ async function saveData(data, options) {
 			console.error(err);
 		}
 	} else if (options.append === false) {
-		if (options.format === 'json') {
+		if (options.format === 'js') {
 			try {
 				// write json file
 				await fs.writeFile(`${options.filepath}.js`, `export default ${JSON.stringify(data)}`);
+				console.log(`Saved ${options.filepath}`);
+			} catch (err) {
+				console.error(err);
+			} 
+		} else
+		if (options.format === 'json') {
+			try {
+				// write json file
+				await fs.writeFile(`${options.filepath}.json`, JSON.stringify(data));
 				console.log(`Saved ${options.filepath}`);
 			} catch (err) {
 				console.error(err);
