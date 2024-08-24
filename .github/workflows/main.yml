@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Run AisStream socket 
+name: Open AisStream socket 
 
 # Controls when the workflow will run
 on:
@@ -19,7 +19,6 @@ jobs:
 
     strategy:
       matrix:
-        # node-version: [16.x]
         # node-version: [22.x]
         node-version: [22.6.x]
 
