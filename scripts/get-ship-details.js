@@ -37,6 +37,7 @@ async function init(data) {
     const loggedInPage = await loginToEquasis(page, password);
     
     // search ship info
+    console.log(loggedInPage)
     const equasisResults = await fetchShipData(loggedInPage, data);
 
     const shipInfo = equasisResults.map(d => d.ship_info);
@@ -67,7 +68,7 @@ async function init(data) {
    await browser.close();
 
    	// exit script
-	process.exit(0);
+	// process.exit(0);
 }
 
 async function fetchStoredShipData(filepath) {
