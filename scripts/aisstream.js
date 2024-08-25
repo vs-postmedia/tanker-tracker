@@ -169,10 +169,10 @@ async function getCurrentShips(aisMessage) {
 				let shipDetails = ship[0];
 
 				// localCache.push(shipDetails);
-				addToLocalCache(shipDetails)
+				// addToLocalCache(shipDetails)
 			}
 
-			// console.log(`localCache: ${JSON.stringify(localCache)}`)
+			console.log(`localCache: ${JSON.stringify(localCache)}`)
 			
 			// post announcement to social media
 			// postToTwitter(data);
@@ -185,8 +185,6 @@ async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 
 	console.log(`STATIC SHIP: ${data.Type} ${data.Name}`);
-	// console.log(`LOCAL CACHE: ${JSON.stringify(localCache)}`)
-	// console.log(`REMOTE CACHE: ${JSON.stringify(remoteCache)}`)
 
 	// timestamp to local ymd format
 	const timestamp = aisMessage.MetaData.time_utc;
@@ -232,6 +230,9 @@ async function getShipStaticData(aisMessage) {
 		// save data to use for a lookup (using object destructuring)
 		updateLookupTable(data);
 		await saveData(shipsLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
+
+		// get ship details from Equasis
+		getShipDetails([data.ImoNumber]);
 	} else {
 		// ship is cached remotely but not locally
 		if (!isLocalCache) {
@@ -283,7 +284,12 @@ function updateLookupTable(data) {
 	shipsLookup.push(lookup);
 	
 	// remove dups
-	return [... new Set(shipsLookup)];
+	// return [... new Set(shipsLookup)];
+	return Array.from(
+		new Set(shipsLookup
+			.map(ship => JSON.stringify(ship))
+		))
+    	.map(ship => JSON.parse(ship));
 }
 
 async function init(url, apiKey, runtime) {
