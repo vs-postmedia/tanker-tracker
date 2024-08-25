@@ -243,7 +243,7 @@ async function searchEquasis(page, data) {
     const imoSelector = `a[onclick*="${data.ImoNumber}"]`;
     await page.waitForSelector(imoSelector);
 
-     // Navigation happens here, so we need to wait for it to complete
+    // Navigation happens here, so we need to wait for it to complete
     await Promise.all([
         page.click(imoSelector),
         page.waitForNavigation({ waitUntil: 'networkidle0'})
