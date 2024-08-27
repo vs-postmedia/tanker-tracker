@@ -84,6 +84,7 @@ async function openWebSocket(url, apiKey) {
 	// on message rx
 	socket.addEventListener('message', (e) => {
 		let aisMessage = JSON.parse(e.data);
+		console.log(aisMessage)
 
 			// check for ships currently moored
 			if (aisMessage.MessageType === 'PositionReport') {
@@ -232,7 +233,7 @@ async function getShipStaticData(aisMessage) {
 		await saveData(shipsLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 
 		// get ship details from Equasis
-		getShipDetails([data.ImoNumber]);
+		getShipDetails.init([data.ImoNumber]);
 	} else {
 		// ship is cached remotely but not locally
 		if (!isLocalCache) {
