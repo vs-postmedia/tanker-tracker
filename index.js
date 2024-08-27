@@ -3,8 +3,8 @@ import aisStream from './scripts/aisstream.js';
 import getShipDetails from './scripts/get-ship-details.js';
 
 // VARS
-const runtime = 15; // how long websocket will stay open, in minutes
-const shipdataFilepath = './data/ships-data.csv'; // main data file
+const runtime = 30; // how long websocket will stay open, in minutes
+// const shipDataFilepath = './data/ships-data.csv'; // main data file
 const aisWs = 'wss://stream.aisstream.io/v0/stream'; // AISStream websocket
 
 const data = [
