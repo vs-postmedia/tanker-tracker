@@ -58,6 +58,7 @@ async function openWebSocket(url, apiKey) {
 		};
 
 		console.log(JSON.stringify(subscriptionMsg.FilterMessageTypes));
+		console.log(`remoteCache: ${JSON.stringify(remoteCache)}`)
 		
 		// open AISstream websocket
 		socket.send(JSON.stringify(subscriptionMsg));
@@ -112,6 +113,7 @@ function calculateShipDimensions(data) {
 async function exitScript() {
 	// save the current ships cache to disk
 	console.log(`EXIT LOCAL CACHE: ${JSON.stringify(localCache)}`)
+	await saveData(localCache, { filepath: remoteCache_filepath, format: 'js', append: false });
 	await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
 
 	// run summary stats
@@ -206,7 +208,9 @@ async function getShipStaticData(aisMessage) {
 	console.log(`remoteCache: ${isRemoteCache}`);
 
 	// if (!imoExists || (imoExists && !etaExists) || !isCached) {
-	if (!imoExists && !isLocalCache && !isRemoteCache) {
+	// if (!imoExists && !isLocalCache && !isRemoteCache) {
+	// if we don't have the imo in the local or remote cache, it's a new ship
+	if (!isLocalCache && !isRemoteCache) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
@@ -241,6 +245,8 @@ async function getShipStaticData(aisMessage) {
 			addToLocalCache(data);
 		}
 	}
+
+	console.log(`localCache: ${JSON.stringify(localCache)}`)
 }
 
 // add new ship to local cache to be saved on script exit
