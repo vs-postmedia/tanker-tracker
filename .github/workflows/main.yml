@@ -47,7 +47,11 @@ jobs:
           PASS_EQUASIS: ${{ secrets.PASS_EQUASIS }}
         run: |
           node index.js
-
+      
+      # pull latest changes
+      - name: Pull latest changes
+        run: git pull --rebase origin main
+        
       # Commit changes
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
