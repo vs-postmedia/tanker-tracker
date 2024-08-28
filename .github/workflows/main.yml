@@ -49,9 +49,11 @@ jobs:
           node index.js
       
       # pull latest changes
+      - name: stash existing changes
+        git stash
       - name: Pull latest changes
         run: git pull --rebase origin main
-        
+
       # Commit changes
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
