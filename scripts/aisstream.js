@@ -175,7 +175,7 @@ async function getCurrentShips(aisMessage) {
 				// addToLocalCache(shipDetails)
 			}
 
-			console.log(`localCache: ${JSON.stringify(localCache)}`)
+			// console.log(`localCache: ${JSON.stringify(localCache)}`)
 			
 			// post announcement to social media
 			// postToTwitter(data);
