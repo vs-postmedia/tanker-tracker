@@ -50,7 +50,7 @@ jobs:
       
       # pull latest changes
       - name: stash existing changes
-        git stash
+        run: git stash
       - name: Pull latest changes
         run: git pull --rebase origin main
 
