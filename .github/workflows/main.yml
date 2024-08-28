@@ -26,6 +26,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -52,7 +55,7 @@ jobs:
       - name: stash existing changes
         run: git stash
       - name: Pull latest changes
-        run: git pull --rebase origin main
+        run: git pull --rebase origin master
 
       # Commit changes
       - uses: stefanzweifel/git-auto-commit-action@v4
