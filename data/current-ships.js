@@ -1,1 +1,1 @@
-export default [{"ImoNumber":9413028},{"ImoNumber":9394959,"MMSI":538003450}]
+export default [{"ImoNumber":9413028},{"ImoNumber":9394959}]
