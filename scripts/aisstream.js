@@ -197,7 +197,7 @@ async function getShipStaticData(aisMessage) {
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
 	// if new IMO or ship not in local or remote (github) cache
-	const imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber);
+	const imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
 	// this is written to current ships on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
 	// ships cache loaded from github
@@ -208,9 +208,9 @@ async function getShipStaticData(aisMessage) {
 	console.log(`remoteCache: ${isRemoteCache}`);
 
 	// if (!imoExists || (imoExists && !etaExists) || !isCached) {
-	// if (!imoExists && !isLocalCache && !isRemoteCache) {
+	if (!imoExists && !isLocalCache && !isRemoteCache) {
 	// if we don't have the imo in the local or remote cache, it's a new ship
-	if (!isLocalCache && !isRemoteCache) {
+	// if (!isLocalCache && !isRemoteCache) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// trim whitespace from strings
@@ -233,8 +233,8 @@ async function getShipStaticData(aisMessage) {
 		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
 
 		// save data to use for a lookup (using object destructuring)
-		updateLookupTable(data);
-		await saveData(shipsLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
+		const updatedLookup = updateLookupTable(data);
+		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 
 		// get ship details from Equasis
 		// getShipDetails.init([data.ImoNumber]);
@@ -253,7 +253,8 @@ async function getShipStaticData(aisMessage) {
 function addToLocalCache(data) {
 	localCache.push({
 		ImoNumber: data.ImoNumber,
-		MMSI: data.MMSI
+		MMSI: data.MMSI,
+		date: data.date
 	});
 }
 
@@ -285,7 +286,10 @@ function getTerminal(lat,lon) {
 
 // update a ship lookup table with imo & mmsi
 function updateLookupTable(data) {
-	const lookup = (({ImoNumber, MMSI, terminal}) => ({ImoNumber, MMSI, terminal}))(data);
+	console.log(data)
+	const lookup = (({ImoNumber, MMSI, date}) => ({ImoNumber, MMSI, date}))(data);
+
+	console.log(lookup)
 
 	// push to array to save to disk
 	shipsLookup.push(lookup);

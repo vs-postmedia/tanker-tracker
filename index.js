@@ -1,11 +1,13 @@
 import 'dotenv/config';
+import aisHub from './scripts/aishub.js';
 import aisStream from './scripts/aisstream.js';
 import getShipDetails from './scripts/get-ship-details.js';
 
 // VARS
-const runtime = 30; // how long websocket will stay open, in minutes
+const runtime = 50; // how long websocket will stay open, in minutes
 // const shipDataFilepath = './data/ships-data.csv'; // main data file
 const aisWs = 'wss://stream.aisstream.io/v0/stream'; // AISStream websocket
+const aishubUrl = 'https://data.aishub.net/ws.php'; // AISHub URL frag
 
 const data = [
     {"ImoNumber":9374507,"MMSI":636013897,"date":"2024-06-26"},
@@ -14,8 +16,9 @@ const data = [
 ];
 
 async function init() {
-	console.log(process.version)
+	console.log(`Node version: ${process.version}`);
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
+	const aishubApiKey = process.env.API_KEY_AISHUB;
 	// console.log(`LOGNAME: ${JSON.stringify(process.env.LOGNAME)}`)
 	// console.log(`USER: ${JSON.stringify(process.env.USER)}`)
 	// console.log(`COMMAND_MODE: ${JSON.stringify(process.env.COMMAND_MODE)}`)
@@ -23,6 +26,7 @@ async function init() {
 	
 	// open streams
 	aisStream.init(aisWs, aisApiKey, runtime);
+	// aisHub.init(aishubUrl, aishubApiKey)
 
 	// getShipDetails.init(data);
 }
