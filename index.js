@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import aisHub from './scripts/aishub.js';
+// import aisHub from './scripts/aishub.js';
 import aisStream from './scripts/aisstream.js';
 import getShipDetails from './scripts/get-ship-details.js';
 
