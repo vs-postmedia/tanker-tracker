@@ -19,7 +19,7 @@ import remoteCache from '../data/current-ships.js';
 let socket;
 const localCache = [];
 const shipsLookup_lookup = [];
-let ebay_poly, suncor_poly, westridge_poly; 
+let parkland_poly, suncor_poly, westridge_poly; 
 // const runtime = 5; // how long websocket will stay open, in minutes
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
@@ -34,10 +34,10 @@ const static_ships_log_filepath = './logs/static-ships.log';
 async function openWebSocket(url, apiKey) {
 	socket = new WebSocket(url);
 
-	// create polygons for terminal
+	// create polygons for terminals
 	suncor_poly = polygon([zones.suncor]);
 	westridge_poly = polygon([zones.westridge]);
-	// ebay_poly = polygon([zones.englishbay]);
+	parkland_poly = polygon([zones.parkland]);
 
 
 	socket.addEventListener('open', _ => {
@@ -51,8 +51,8 @@ async function openWebSocket(url, apiKey) {
 				// Suncor Terminal
 				[zones.suncor[0], zones.suncor[2]]
 
-				// English Bay
-				// zones.englishbay[0], zones.englishbay[2]
+				// Parkland
+				[zones.parkland[0], zones.parkland[2]]
 			],
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
@@ -207,9 +207,8 @@ async function getShipStaticData(aisMessage) {
 	console.log(`localCache: ${isLocalCache}`);
 	console.log(`remoteCache: ${isRemoteCache}`);
 
-	// if (!imoExists || (imoExists && !etaExists) || !isCached) {
+	// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
 	if (!imoExists && !isLocalCache && !isRemoteCache) {
-	// if we don't have the imo in the local or remote cache, it's a new ship
 	// if (!isLocalCache && !isRemoteCache) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
@@ -232,7 +231,7 @@ async function getShipStaticData(aisMessage) {
 		// update ships_data array & save full ship data to disk
 		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
 
-		// save data to use for a lookup (using object destructuring)
+		// save data to use for a lookup
 		const updatedLookup = updateLookupTable(data);
 		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 
@@ -272,8 +271,8 @@ function getTerminal(lat,lon) {
 		terminal = 'Westridge';
 	} else if (booleanPointInPolygon(point, suncor_poly)) {
 		terminal = 'Suncor';
-	// } else if (booleanPointInPolygon(point, ebay_poly)) {
-	// 	terminal = 'English Bay'
+	} else if (booleanPointInPolygon(point, parkland_poly)) {
+		terminal = 'Parkland'
 	}
 
 	if (terminal == undefined) {
