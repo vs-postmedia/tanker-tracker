@@ -197,7 +197,7 @@ async function getShipStaticData(aisMessage) {
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
 	// if new IMO or ship not in local or remote (github) cache
-	const imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
+	const imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.Eta === data.Eta);
 	// this is written to current ships on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
 	// ships cache loaded from github
