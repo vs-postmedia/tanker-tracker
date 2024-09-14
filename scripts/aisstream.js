@@ -209,8 +209,10 @@ async function getShipStaticData(aisMessage) {
 
 	// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
 	if (!imoExists && !isLocalCache && !isRemoteCache) {
-	// if (!isLocalCache && !isRemoteCache) {
 		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
+
+		// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
+		if (data.ImoNumber === 0) {return}
 
 		// trim whitespace from strings
 		data.CallSign = data.CallSign.trim();
@@ -277,7 +279,8 @@ function getTerminal(lat,lon) {
 
 	if (terminal == undefined) {
 		console.log(`Terminal undefined`)
-		console.log(point, lat, lon)
+		console.log(point, lat, lon);
+		terminal = undefined;
 	}
 
 	return terminal;
