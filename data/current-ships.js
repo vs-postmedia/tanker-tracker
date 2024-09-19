@@ -1,1 +1,1 @@
-export default [{"ImoNumber":9783019,"date":"2024-09-19"},{"ImoNumber":9706425,"MMSI":538005538,"date":"2024-09-19"}]
+export default [{"ImoNumber":9783019,"date":"2024-09-19"},{"ImoNumber":9706425,"date":"2024-09-19"}]
