@@ -18,11 +18,7 @@ const data = [
 async function init() {
 	console.log(`Node version: ${process.version}`);
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
-	const aishubApiKey = process.env.API_KEY_AISHUB;
-	// console.log(`LOGNAME: ${JSON.stringify(process.env.LOGNAME)}`)
-	// console.log(`USER: ${JSON.stringify(process.env.USER)}`)
-	// console.log(`COMMAND_MODE: ${JSON.stringify(process.env.COMMAND_MODE)}`)
-	// console.log(`XPC_SERVICE_NAME: ${JSON.stringify(process.env.XPC_SERVICE_NAME)}`)
+	// const aishubApiKey = process.env.API_KEY_AISHUB;
 	
 	// open streams
 	aisStream.init(aisWs, aisApiKey, runtime);
