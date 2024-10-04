@@ -49,7 +49,7 @@ async function openWebSocket(url, apiKey) {
 				[zones.westridge[0], zones.westridge[2]],
 				
 				// Suncor Terminal
-				[zones.suncor[0], zones.suncor[2]]
+				[zones.suncor[0], zones.suncor[2]],
 
 				// Parkland
 				[zones.parkland[0], zones.parkland[2]]
@@ -85,7 +85,6 @@ async function openWebSocket(url, apiKey) {
 	// on message rx
 	socket.addEventListener('message', (e) => {
 		let aisMessage = JSON.parse(e.data);
-		// console.log(aisMessage)
 
 			// check for ships currently moored
 			if (aisMessage.MessageType === 'PositionReport') {
@@ -193,19 +192,27 @@ async function getShipStaticData(aisMessage) {
 	const timestamp = aisMessage.MetaData.time_utc;
 	const date = new Date(timestamp);
 	data.date = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+
 	// create array from Eta
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
 	// if new IMO or ship not in local or remote (github) cache
-	const imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.Eta === data.Eta);
+	let imoExists = shipsLookup.some(d => xd.ImoNumber === data.ImoNumber && d.date === data.date
+	});
+
 	// this is written to current ships on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
+	
 	// ships cache loaded from github
-	const isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
+	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
 
 	console.log(`IMO exists: ${imoExists}`);
 	console.log(`localCache: ${isLocalCache}`);
 	console.log(`remoteCache: ${isRemoteCache}`);
+
+	// imoExists = false;
+	// isRemoteCache = false;
+	// isLocalCache = false;
 
 	// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
 	if (!imoExists && !isLocalCache && !isRemoteCache) {
@@ -235,6 +242,7 @@ async function getShipStaticData(aisMessage) {
 
 		// save data to use for a lookup
 		const updatedLookup = updateLookupTable(data);
+		// console.log(updatedLookup)
 		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 
 		// get ship details from Equasis
@@ -286,7 +294,7 @@ function getTerminal(lat,lon) {
 	return terminal;
 }
 
-// update a ship lookup table with imo & mmsi
+// update a ship lookup table with imo & mmsi & date
 function updateLookupTable(data) {
 	console.log(data)
 	const lookup = (({ImoNumber, MMSI, date}) => ({ImoNumber, MMSI, date}))(data);
@@ -298,11 +306,15 @@ function updateLookupTable(data) {
 	
 	// remove dups
 	// return [... new Set(shipsLookup)];
-	return Array.from(
+	const uniqueShips = Array.from(
 		new Set(shipsLookup
 			.map(ship => JSON.stringify(ship))
 		))
     	.map(ship => JSON.parse(ship));
+
+	console.log(uniqueShips)
+
+	return uniqueShips
 }
 
 async function init(url, apiKey, runtime) {
