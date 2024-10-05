@@ -295,10 +295,7 @@ function getTerminal(lat,lon) {
 
 // update a ship lookup table with imo & mmsi & date
 function updateLookupTable(data) {
-	console.log(data)
 	const lookup = (({ImoNumber, MMSI, date}) => ({ImoNumber, MMSI, date}))(data);
-
-	console.log(lookup)
 
 	// push to array to save to disk
 	shipsLookup.push(lookup);
