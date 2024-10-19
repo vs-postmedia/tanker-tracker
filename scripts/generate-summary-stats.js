@@ -6,12 +6,14 @@ const directory = './data/';
 
 // FUNCTIONS
 // overall summary
-async function generateSummaryStats(data) {
-    // console.log(data)
-    data.forEach(d => {
+async function generateSummaryStats(allData) {
+    allData.forEach(d => {
         // better to strip blank lines out of ships-data.csv but...
         if (d.date !== undefined) { d.year_month = d.date.slice(0, -3); }
     });
+
+    // we dont want ships that weren't in one of the terminals
+    const data = allData.filter(d => d.terminal.length > 0)
 
     // total ship count
     const shipsTotal = data.length;
