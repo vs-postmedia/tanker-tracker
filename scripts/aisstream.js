@@ -152,7 +152,7 @@ async function getCurrentShips(aisMessage) {
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
 
-	// console.log(`CURRENT_SHIP: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
+	console.log(`GET CURRENT SHIPS: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
 
 	// check navstatus to see if ship is moored or at anchor
 	// https://api.vesselfinder.com/docs/ref-navstat.html
@@ -174,7 +174,7 @@ async function getCurrentShips(aisMessage) {
 				// addToLocalCache(shipDetails)
 			}
 
-			// console.log(`localCache: ${JSON.stringify(localCache)}`)
+			// console.log(`GCS: localCache: ${JSON.stringify(localCache)}`)
 			
 			// post announcement to social media
 			// postToTwitter(data);
@@ -186,7 +186,7 @@ async function getCurrentShips(aisMessage) {
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 
-	console.log(`STATIC SHIP: ${data.Type} ${data.Name}`);
+	console.log(`STATIC SHIP DATA: ${data.Type} ${data.Name}`);
 
 	// timestamp to local ymd format
 	const timestamp = aisMessage.MetaData.time_utc;
@@ -196,18 +196,18 @@ async function getShipStaticData(aisMessage) {
 	// create array from Eta
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
-	// if new IMO or ship not in local or remote (github) cache
+	// if we've never seen this IMO before - MAYBE DON'T NEED???
 	let imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
 
-	// this is written to current ships on script exit
+	// this is written to current-ships.json on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
 	
 	// ships cache loaded from github
 	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
 
-	console.log(`IMO exists: ${imoExists}`);
-	console.log(`localCache: ${isLocalCache}`);
-	console.log(`remoteCache: ${isRemoteCache}`);
+	console.log(`SSD: IMO exists: ${imoExists}`);
+	console.log(`SSD: localCache: ${isLocalCache}`);
+	console.log(`SSD: remoteCache: ${isRemoteCache}`);
 
 	// imoExists = false;
 	// isRemoteCache = false;
@@ -215,7 +215,7 @@ async function getShipStaticData(aisMessage) {
 
 	// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
 	if (!imoExists && !isLocalCache && !isRemoteCache) {
-		console.log(`New ship in boundary: ${aisMessage.MetaData.ShipName}`);
+		console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
 		if (data.ImoNumber === 0) {return}
@@ -249,16 +249,19 @@ async function getShipStaticData(aisMessage) {
 	} else {
 		// ship is cached remotely but not locally
 		if (!isLocalCache) {
+			// add MMSI back into SSD
+			data.MMSI = aisMessage.MetaData.MMSI;
 			// save new ship in local cache (we'll save to disk on exit)
 			addToLocalCache(data);
 		}
 	}
 
-	console.log(`localCache: ${JSON.stringify(localCache)}`)
+	console.log(`SSD: localCache: ${JSON.stringify(localCache)}`)
 }
 
 // add new ship to local cache to be saved on script exit
 function addToLocalCache(data) {
+	console.log(data)
 	localCache.push({
 		ImoNumber: data.ImoNumber,
 		MMSI: data.MMSI,
@@ -307,8 +310,6 @@ function updateLookupTable(data) {
 			.map(ship => JSON.stringify(ship))
 		))
     	.map(ship => JSON.parse(ship));
-
-	console.log(uniqueShips)
 
 	return uniqueShips
 }
