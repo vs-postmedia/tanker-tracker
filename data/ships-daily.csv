@@ -46,7 +46,6 @@ date,terminal,total
 2024-07-28,Westridge,2
 2024-07-31,Westridge,1
 2024-07-31,Suncor,1
-2024-08-01,Westridge,1
 2024-08-02,Westridge,1
 2024-08-03,Westridge,1
 2024-08-05,Westridge,1
@@ -85,7 +84,6 @@ date,terminal,total
 2024-09-21,Westridge,1
 2024-09-23,Westridge,2
 2024-09-24,Westridge,1
-2024-09-25,Westridge,1
 2024-09-26,Westridge,2
 2024-09-28,Westridge,1
 2024-09-28,Suncor,1
@@ -98,7 +96,7 @@ date,terminal,total
 2024-10-05,Westridge,1
 2024-10-06,Westridge,1
 2024-10-07,Suncor,1
-2024-10-07,Westridge,2
+2024-10-07,Westridge,1
 2024-10-08,Parkland,1
 2024-10-08,Suncor,1
 2024-10-08,Westridge,1
@@ -122,4 +120,5 @@ date,terminal,total
 2024-11-01,Westridge,1
 2024-11-02,Westridge,1
 2024-11-03,Westridge,1
-2024-11-04,Westridge,3
+2024-11-04,Westridge,1
+2024-11-04,Suncor,1
