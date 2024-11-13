@@ -244,16 +244,13 @@ async function getShipStaticData(aisMessage) {
 		// console.log(updatedLookup)
 		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 
-		// get ship details from Equasis
-		// getShipDetails.init([data.ImoNumber]);
-	} else {
-		// ship is cached remotely but not locally
-		if (!isLocalCache) {
-			// add MMSI back into SSD
-			data.MMSI = aisMessage.MetaData.MMSI;
-			// save new ship in local cache (we'll save to disk on exit)
-			addToLocalCache(data);
-		}
+		// save new ship in local cache (we'll save to disk on exit)
+        addToLocalCache(data);
+	// ship is cached remotely but not locally
+	} else if (!isLocalCache) {
+		console.log('Adding to local cache');
++       // save new ship in local cache (we'll save to disk on exit)
++       addToLocalCache(data);
 	}
 
 	console.log(`SSD: localCache: ${JSON.stringify(localCache)}`)
