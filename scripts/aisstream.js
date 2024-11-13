@@ -89,7 +89,7 @@ async function openWebSocket(url, apiKey) {
 			// check for ships currently moored
 			if (aisMessage.MessageType === 'PositionReport') {
 				// cache currently moored ships
-				getCurrentShips(aisMessage);
+				// getCurrentShips(aisMessage);
 			}
 
 		// get static ship data on ships in bboxes
