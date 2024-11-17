@@ -20,7 +20,9 @@ async function init() {
 	const aisApiKey = process.env.API_KEY_AISSTREAM;
 	// const aishubApiKey = process.env.API_KEY_AISHUB;
 	
-	// open streams
+	// open stream
+	// SHOULD THIS RETURN AN OBJECT WITH CURRENTLY MOORED
+	// SHIPS THAT CAN BE SEARCHED ON EQUASIS???
 	aisStream.init(aisWs, aisApiKey, runtime);
 	// aisHub.init(aishubUrl, aishubApiKey)
 
