@@ -111,7 +111,7 @@ function calculateShipDimensions(data) {
 // shut ’er down!
 async function exitScript() {
 	// save the current ships cache to disk
-	console.log(`EXIT LOCAL CACHE: ${JSON.stringify(localCache)}`)
+	// console.log(`EXIT LOCAL CACHE: ${JSON.stringify(localCache)}`)
 	await saveData(localCache, { filepath: remoteCache_filepath, format: 'js', append: false });
 	await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
 

@@ -4,7 +4,7 @@ import { promises as fs } from 'fs';
 
 async function saveData(data, options) {
 	// not sure why we need this... 🤷‍♂️
-	if (data.length === 0) return;
+	// if (data.length === 0) return;
 	
 	// append or overwrite file
 	if (options.append === true) {
