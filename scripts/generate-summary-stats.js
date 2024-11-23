@@ -2,7 +2,7 @@ import saveData from './save-data.js';
 import { tidy, arrange, count, cumsum, groupBy, mutateWithSummary, n, nDistinct, pivotWider, select, summarize } from '@tidyjs/tidy';
 
 // VARS
-const directory = './data/';
+const directory = './data/output/';
 
 // FUNCTIONS
 // overall summary
