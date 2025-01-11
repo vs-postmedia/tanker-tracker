@@ -17,6 +17,7 @@ import remoteCache from '../data/current-ships.js';
 
 // VARS
 let socket;
+let ssdMsgCount = 0;
 const localCache = [];
 const shipsLookup_lookup = [];
 let parkland_poly, suncor_poly, westridge_poly; 
@@ -27,7 +28,7 @@ const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanke
 
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
-const ships_lookup_filepath = './data/ships-list';
+// const ships_lookup_filepath = './data/ships-list';
 const remoteCache_filepath = './data/current-ships';
 const static_ships_log_filepath = './logs/static-ships.log';
 
@@ -97,6 +98,8 @@ async function openWebSocket(url, apiKey) {
 
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
+				// sometimes socket stops transmitting, leading to dupes
+				ssdMsgCount += 1;
 				getShipStaticData(aisMessage);
 			}
 		}
@@ -110,10 +113,12 @@ function calculateShipDimensions(data) {
 
 // shut ’er down!
 async function exitScript() {
-	// save the current ships cache to disk
-	// console.log(`EXIT LOCAL CACHE: ${JSON.stringify(localCache)}`)
-	await saveData(localCache, { filepath: remoteCache_filepath, format: 'js', append: false });
-	await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
+	// save the current ships cache to disk if we've received new messages
+	if (ssdMsgCount > 0) {
+		await saveData(localCache, { filepath: remoteCache_filepath, format: 'js', append: false });
+		// we probably don't need this one....
+		await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
+	}
 
 	// run summary stats
 	const data = await fetchShipData(`${ships_data_filepath}.csv`);
@@ -242,7 +247,7 @@ async function getShipStaticData(aisMessage) {
 		// save data to use for a lookup
 		const updatedLookup = updateLookupTable(data);
 		// console.log(updatedLookup)
-		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
+		// await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 	// ship is cached remotely but not locally
 	} else if (!isLocalCache) {
 +       // save new ship in local cache (we'll save to disk on exit)
