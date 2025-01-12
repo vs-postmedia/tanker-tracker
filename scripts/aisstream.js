@@ -8,11 +8,7 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import generateSummaryStats from './generate-summary-stats.js';
 
 // DATA
-// import zones from '../data/zone-coords.json' assert { type: 'json' };
-// import shipsLookup from '../data/ships-lookup.json' assert { type: 'json' };
-// import remoteCache from '../data/current-ships.json' assert { type: 'json' };
 import zones from '../data/zone-coords.js';
-import shipsLookup from '../data/ships-lookup.js';
 import remoteCache from '../data/current-ships.js';
 
 // VARS
@@ -28,7 +24,6 @@ const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanke
 
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
-// const ships_lookup_filepath = './data/ships-list';
 const remoteCache_filepath = './data/current-ships';
 const static_ships_log_filepath = './logs/static-ships.log';
 
