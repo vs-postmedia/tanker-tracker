@@ -9,6 +9,7 @@ import generateSummaryStats from './generate-summary-stats.js';
 
 // DATA
 import zones from '../data/zone-coords.js';
+import shipsLookup from '../data/ships-lookup.js';
 import remoteCache from '../data/current-ships.js';
 
 // VARS
@@ -25,7 +26,7 @@ const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanke
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
 const remoteCache_filepath = './data/current-ships';
-const static_ships_log_filepath = './logs/static-ships.log';
+const ships_lookup_filepath = './data/ships-lookup';
 
 async function openWebSocket(url, apiKey) {
 	socket = new WebSocket(url);
@@ -242,7 +243,7 @@ async function getShipStaticData(aisMessage) {
 		// save data to use for a lookup
 		const updatedLookup = updateLookupTable(data);
 		// console.log(updatedLookup)
-		// await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
+		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 	// ship is cached remotely but not locally
 	} else if (!isLocalCache) {
 +       // save new ship in local cache (we'll save to disk on exit)
