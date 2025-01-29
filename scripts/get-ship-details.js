@@ -3,6 +3,8 @@ import 'dotenv/config';
 import Papa from 'papaparse';
 import puppeteer from 'puppeteer';
 import saveData from './save-data.js';
+import { tidy, leftJoin } from '@tidyjs/tidy';
+import flagLookup from '../data/country-flags.js';
 
 // VARS
 let browser;
@@ -12,20 +14,19 @@ const loginIdSelector = '#home-login';
 const passIdSelector = '#home-password';
 const loginAddress = process.env.LOGIN_EQUASIS;
 const shipInfoFilepath = './data/ship-info-data';
-const inspectionDataFilepath = './data/inspection-data';
+// const inspectionDataFilepath = './data/inspection-data';
 const isHeadless = process.env.LOGNAME === undefined ? true : false;
 const equasisUrl = 'https://www.equasis.org/EquasisWeb/public/HomePage?fs=HomePage';
 const userAgent =
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
             '(KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36';
+const shipNameSelector = '#body > section:nth-child(9) > div > div > div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div:nth-child(1) > div.col-lg-12.col-md-12.col-sm-12.col-xs-12 > h4 > b:nth-child(1)';
 const shipInfoSelector = '#body > section:nth-child(9) > div > div > div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div:nth-child(2) > div.col-lg-12.col-md-12.col-sm-12.col-xs-12 > div.access-item > div > div > div.col-lg-12.col-md-12.col-sm-12.col-xs-12';
 
 async function init(data) {
     console.log(`DATA: ${JSON.stringify(data)}`);
     console.log(`LOGNAME: ${process.env.LOGNAME}`)
     console.log(`HEADLESS: ${isHeadless}`);
-
-    const storedShipDetails = await fetchStoredShipData(shipInfoFilepath);
 
     // get equasis password
     const password = process.env.PASS_EQUASIS;
@@ -39,54 +40,28 @@ async function init(data) {
     // search ship info
     const equasisResults = await fetchShipData(loggedInPage, data);
 
+    // split ship info & inspection data into two arrays
     const shipInfo = equasisResults.map(d => d.ship_info);
     const inspectionData = equasisResults.map(d => d.inspection_data);
 
-    // if we don't already have the shipinfo, save it
-    for (const ship of shipInfo) {
-        const shipInfoExists = storedShipDetails.some(d => parseInt(ship.imo_number) === parseInt(d.imo_number));
-
-        if (!shipInfoExists) { shipsToSave.push(ship); }
-    };
-
-    // add new ships to our database
-    if (shipsToSave.length > 0) {
-        await saveData(shipsToSave, { filepath: shipInfoFilepath, format: 'csv', append: true });
-    }
-
-    // if there is new inspection data, save it
-    // console.log(inspectionData)
-    // what's this do??? de-dup? YES // [...new Set(inspectionData)] 
-    // console.log(inspectionData.reduce((acc, val) => acc.concat(val), []));
-    // const newInspectionData = false;
-    // if (!newInspectionData) {
-    //     await saveData(inspectionData.reduce((acc, val) => acc.concat(val), []), { filepath: inspectionDataFilepath, format: 'csv', append: true });
-    // }
+    // get count of deficiencies & duration – within the past XX years
+    // CODE TK
+	
+	// merge topImos back into shipDetails to get the moorings count
+	const shipDetailsMerged = tidy(
+		shipInfo,
+		leftJoin(data, {by: ['ImoNumber']})
+	);
 
     // close browser
    await browser.close();
 
-   	// exit script
-	// process.exit(0);
+   return {
+        ship_info: shipInfo,
+        inspection_data: inspectionData
+    };
 }
 
-async function fetchStoredShipData(filepath) {
-	let data;
-    // read in the master csvfile
-    const file = fs.readFileSync(`${filepath}.csv`, 'utf8');
-
-    // convert to json
-    Papa.parse(file, {
-        complete: (response) => {
-            // NEEDS ERROR LOG HERE
-			data = response.data;
-        },
-        delimiter: ',',
-        header: true
-    });
-	
-	return data;
-}
 
 async function fetchShipData(page, data) {
     const shipData = [];
@@ -99,26 +74,30 @@ async function fetchShipData(page, data) {
     return shipData;
 }
 
-async function getShipInfo(page, imo, shipInfoSelector) {
-    // console.log(shipInfoSelector);
+async function getShipInfo(page, imo, shipInfoSelector, shipNameSelector, flagLookup) {
     await page.waitForSelector(shipInfoSelector);
     
-    const shipDetails = await page.evaluate((imo, selector) => {
-        const table = document.querySelector(selector);
+    const shipDetails = await page.evaluate((imo, shipInfoSelector, shipNameSelector, flagLookup) => {
+
+        const table = document.querySelector(shipInfoSelector);
         const rows = Array.from(table.querySelectorAll('.row'));
 
         // get each 'cell' from each row
         const cells = rows.map(row => Array.from(row.querySelectorAll('.col-xs-6')));
+        const countryName = cells[0][3].textContent.trim().replace('(','').replace(')', '');
+        const country = flagLookup.filter(d => d.country === countryName);
 
         return {
-            imo_number: imo,
-            flag: cells[0][3].textContent.trim().replace('(','').replace(')', ''),
+            ImoNumber: imo,
+            shipName: document.querySelector(shipNameSelector).textContent.trim(),
+            country: countryName,
+            flag: country.length > 0 ? country[0].emoji : '',
             gross_tonnage: parseInt(cells[3][1].textContent.trim()),
             ship_type: cells[5][1].textContent.trim(),
             build_year: cells[6][1].textContent.trim()
         };
 
-    }, imo, shipInfoSelector);
+    }, imo, shipInfoSelector, shipNameSelector, flagLookup);
 
     return shipDetails;
 }
@@ -138,16 +117,15 @@ async function getInspectionData(page, imo) {
         // console.log(error);
     }
 
-    const inspectionData = await page.evaluate(() => {
+    const rawInspectionData = await page.evaluate(() => {
         let rowCache = [];
         const table = document.querySelector('.tableLSDD');
         const rows = Array.from(table.querySelectorAll('tr'));
+        const headers = ['inspection_port', 'report_date', 'detention', 'psc_org', 'inspection_type', 'duration', 'deficiency_count', 'details'];
 
-        return rows.map(row => {
+        const rowData = rows.map(row => {
             let finalResults = [];
             const cells = Array.from(row.querySelectorAll('td, th'));
-
-            console.log(cells)
             const results = cells.map(cell => cell.textContent.trim());
 
             // backfill data for columns that take up two rows
@@ -155,14 +133,11 @@ async function getInspectionData(page, imo) {
                 finalResults = results;
                 rowCache = results.slice(0, 4);
             } else {
-                // console.log(`ROW CACHE: ${rowCache}`)
                 finalResults = [...rowCache, ...results];
             }
 
             // create year column
             results.year = parseInt(results[2].slice(-4));
-            
-            // console.log(finalResults)
 
             // does ship have deficiencies?
             if (finalResults[7].length > 0) {
@@ -174,19 +149,18 @@ async function getInspectionData(page, imo) {
 
             return finalResults
         });
+
+        return rowData
     });
 
-    // prepend IMO number to each row
-    inspectionData.forEach((d, i) => {
-        if (i > 0) {
-            d.unshift(imo)
-        } else {
-            d.unshift('Imo number')
-        }
+    const keys = rawInspectionData[0];
+    const inspectionData = rawInspectionData.slice(1).map(row => {
+        return row.reduce((obj, value, i) => {
+            obj[keys[i]] = value;
+            obj.ImoNumber = imo;
+            return obj;
+        }, {});
     });
-
-    // drop header row
-    inspectionData.shift();
 
     return inspectionData;
 }
@@ -226,8 +200,9 @@ async function setupPage(url) {
 }
 
 async function searchEquasis(page, data) {
-    console.log(data)
+    console.log(`LOOKING UP: ${JSON.stringify(data)}`)
     // go to home page
+    await page.waitForSelector('.navbar-nav');
     await page.click('.navbar-nav a[href*="HomePage"]');
 
     // Wait for search box to appear
@@ -251,12 +226,11 @@ async function searchEquasis(page, data) {
     // await page.click(imoSelector);
 
     // collect ship info
-    let shipInfo = await getShipInfo(page, data.ImoNumber, shipInfoSelector);
+    let shipInfo = await getShipInfo(page, data.ImoNumber, shipInfoSelector, shipNameSelector, flagLookup);
 
     // collect inspection data
     let inspectionData = await getInspectionData(page, data.ImoNumber);
 
-    // console.log(inspectionData)
     return {
         ship_info: shipInfo,
         inspection_data: inspectionData
