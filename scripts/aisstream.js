@@ -2,23 +2,26 @@ import fs from 'fs';
 import WebSocket from 'ws';
 import Papa from 'papaparse';
 import saveData from './save-data.js';
+// import { tidy, leftJoin } from '@tidyjs/tidy';
 import { point, polygon } from '@turf/helpers';
 // import { postToTwitter } from './post-online.js';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import generateSummaryStats from './generate-summary-stats.js';
+import getShipDetails from './get-ship-details.js';
 
 // DATA
 import zones from '../data/zone-coords.js';
 import shipsLookup from '../data/ships-lookup.js';
 import remoteCache from '../data/current-ships.js';
 
+
 // VARS
-let socket;
 let ssdMsgCount = 0;
+// const topImoCount = 2; // how many ships will display in the topImos table?
+let socket, parkland_poly, suncor_poly, westridge_poly; 
 const localCache = [];
 const shipsLookup_lookup = [];
-let parkland_poly, suncor_poly, westridge_poly; 
-// const runtime = 5; // how long websocket will stay open, in minutes
+// const shipInfoFilepath = './data/ship-info-data';
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -116,7 +119,7 @@ async function exitScript() {
 		await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
 	}
 
-	// run summary stats
+	// generate summary stats
 	const data = await fetchShipData(`${ships_data_filepath}.csv`);
 	await generateSummaryStats(data);
 
@@ -307,6 +310,27 @@ function updateLookupTable(data) {
 
 	return uniqueShips
 }
+
+// async function updateTopImoData(topImoCount) {
+// 	// run summary stats
+// 	const data = await fetchShipData(`${ships_data_filepath}.csv`);
+// 	const shipsUnique = await generateSummaryStats(data);
+	
+// 	// get the top x IMOs & fetch details from equasis
+// 	const topImos = shipsUnique.sort((a,b) => b.count - a.count).slice(0,topImoCount);
+
+// 	// NEED TO HAVE A TRY/CATCH BLOCK HERE
+// 	// get ship details for ships that moor most often
+// 	const equasisResults = await getShipDetails.init(topImos);
+
+// 	// merge topImos back into shipDetails to get the moorings count
+// 	const shipDetailsMerged = tidy(
+// 		equasisResults.ship_info,
+// 		leftJoin(topImos, {by: ['ImoNumber']})
+// 	);
+
+// 	return shipDetailsMerged;
+// }
 
 async function init(url, apiKey, runtime) {
 	console.log(`Starting new script run: ${new Date()}`);
