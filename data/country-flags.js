@@ -397,7 +397,7 @@ export default [
         emoji:"🇳🇴"},
     {country: "Poland",
         emoji:"🇵🇱"},
-    {country: "Portugal",
+    {country: "Portugal (MAR)",
         emoji:"🇵🇹"},
     {country: "Romania",
         emoji:"🇷🇴"},
