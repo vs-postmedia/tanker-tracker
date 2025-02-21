@@ -26,7 +26,7 @@ async function init(data) {
     console.log('Getting ship details for top IMOs...')
     // console.log(`DATA: ${JSON.stringify(data)}`);
     // console.log(`LOGNAME: ${process.env.LOGNAME}`)
-    // console.log(`HEADLESS: ${isHeadless}`);
+    console.log(`HEADLESS: ${isHeadless}`);
 
     // get equasis password
     const password = process.env.PASS_EQUASIS;
@@ -186,8 +186,8 @@ async function setupPage(url) {
     /*
     *** use process.env.MODE TO SET HEADLESS VAR BASED ON ENVIRONMENT!!! ***
     */
-    // browser = await puppeteer.launch({ headless: isHeadless });
-    browser = await puppeteer.launch({headless: true })
+    browser = await puppeteer.launch({ headless: isHeadless });
+    // browser = await puppeteer.launch({headless: true })
     const page = await browser.newPage();
     await page.setUserAgent(userAgent);
 
