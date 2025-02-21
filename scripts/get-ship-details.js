@@ -186,7 +186,8 @@ async function setupPage(url) {
     /*
     *** use process.env.MODE TO SET HEADLESS VAR BASED ON ENVIRONMENT!!! ***
     */
-    browser = await puppeteer.launch({ headless: isHeadless });
+    // browser = await puppeteer.launch({ headless: isHeadless });
+    browser = await puppeteer.launch({headless: true })
     const page = await browser.newPage();
     await page.setUserAgent(userAgent);
 

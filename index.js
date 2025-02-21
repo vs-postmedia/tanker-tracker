@@ -4,7 +4,7 @@ import aisStream from './scripts/aisstream.js';
 
 
 // VARS
-const runtime = 2; // how long websocket will stay open, in minutes
+const runtime = 45; // how long websocket will stay open, in minutes
 const ships_data_filepath = './data/ships-data';
 const aisWs = 'wss://stream.aisstream.io/v0/stream'; // AISStream websocket
 // const aishubUrl = 'https://data.aishub.net/ws.php'; // AISHub URL frag
