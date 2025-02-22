@@ -12,29 +12,7 @@ const shipInfoFilepath = './data/top-imo-details';
 
 
 // FUNCTIONS
-async function fetchShipData(filepath) {
-	let data;
-	// read in the master csvfile
-	const file = fs.readFileSync(filepath, 'utf8');
-
-	// convert to json
-	Papa.parse(file, {
-		complete: (response) => {
-			// NEEDS ERROR LOG HERE
-			data = response.data;
-		},
-		delimiter: ',',
-		header: true
-	});
-	
-	return data;
-}
-
 async function updateTopImoData(topImoCount, shipsUnique) {
-	// run summary stats
-	// const data = await fetchShipData(`${ships_data_filepath}.csv`);
-	// const shipsUnique = await generateSummaryStats(data);
-	
 	// get the top x IMOs & fetch details from equasis
 	const topImos = shipsUnique.sort((a,b) => b.count - a.count).slice(0,topImoCount);
 
@@ -57,10 +35,10 @@ async function generateSummaryStats(allData) {
     // we dont want ships that weren't in one of the terminals
     const data = allData.filter(d => d.terminal.length > 0)
 
-    // allData.forEach(d => {
-    //     // better to strip blank lines out of ships-data.csv but...
-    //     if (d.date !== undefined) { d.year_month = d.date.slice(0, -3); }
-    // });
+    allData.forEach(d => {
+        // better to strip blank lines out of ships-data.csv but...
+        if (d.date !== undefined) { d.year_month = d.date.slice(0, -3); }
+    });
 
     // total ship count
     const shipsTotal = data.length;
@@ -119,8 +97,6 @@ async function generateSummaryStats(allData) {
         ]
         )
     );
-
-    // console.log(shipsUnique)
 
 	// get data from equasis on the ships that moor most often & save it to disk
 	const topImos = await updateTopImoData(topImoCount, shipsUnique);
