@@ -14,7 +14,7 @@ const shipInfoFilepath = './data/top-imo-details';
 // FUNCTIONS
 async function updateTopImoData(topImoCount, shipsUnique) {
 	// get the top x IMOs & fetch details from equasis
-	const topImos = shipsUnique.sort((a,b) => b.count - a.count).slice(0,topImoCount);
+	const topImos = shipsUnique.sort((a,b) => b.count - a.count).slice(0, topImoCount);
 
 	// NEED TO HAVE A TRY/CATCH BLOCK HERE
 	// get ship details for ships that moor most often
