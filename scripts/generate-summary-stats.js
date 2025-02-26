@@ -18,7 +18,8 @@ async function updateTopImoData(topImoCount, shipsUnique) {
 
 	// NEED TO HAVE A TRY/CATCH BLOCK HERE
 	// get ship details for ships that moor most often
-	const equasisResults = await getShipDetails.init(topImos);
+	// const equasisResults = await getShipDetails.init(topImos);
+    const equasisResults  =[{imoNumber: 9953901}];
 
 	// merge topImos back into shipDetails to get the moorings count
 	const shipDetailsMerged = tidy(
