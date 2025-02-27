@@ -1,6 +1,2 @@
-ImoNumber,shipName,country,flag,gross_tonnage,ship_type,build_year,count
-9592226,AQUALIBERTY,Liberia,🇱🇷,61237,Crude Oil Tanker,2011,16
-9607954,SEAWAYS REDWOOD,Marshall Islands,🇲🇭,62647,Crude Oil Tanker,2013,9
-9953901,NEW ALLIANCE,Liberia,🇱🇷,63262,Crude Oil Tanker,2024,9
-9408322,TARBET SPIRIT,Bahamas,🇧🇸,60205,Crude Oil Tanker,2009,8
-9953042,MONIQUE GLORY,Marshall Islands,🇲🇭,63673,Crude Oil Tanker,2023,8
+imoNumber
+9953901
