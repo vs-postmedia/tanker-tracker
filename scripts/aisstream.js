@@ -204,10 +204,10 @@ async function getShipStaticData(aisMessage) {
 	let imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
 
 	// this is written to current-ships.json on script exit
-	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
+	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
 	
 	// ships cache loaded from github
-	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber);
+	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
 
 	console.log(`SSD: IMO exists: ${imoExists}`);
 	console.log(`SSD: localCache: ${isLocalCache}`);
