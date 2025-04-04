@@ -213,10 +213,6 @@ async function getShipStaticData(aisMessage) {
 	console.log(`SSD: localCache: ${isLocalCache}`);
 	console.log(`SSD: remoteCache: ${isRemoteCache}`);
 
-	// imoExists = false;
-	// isRemoteCache = false;
-	// isLocalCache = false;
-
 	// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
 	if (!imoExists && !isLocalCache && !isRemoteCache) {
 		console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
@@ -261,9 +257,9 @@ function addToLocalCache(data, timeArray) {
 	console.log(`Adding to local cache: ${data.ImoNumber}`);
 	localCache.push({
 		ImoNumber: data.ImoNumber,
-		MMSI: data.MMSI,
-		date: data.date,
-		Eta: timeArray
+		// MMSI: data.MMSI,
+		// date: data.date,
+		timeArray: timeArray
 	});
 }
 
@@ -302,7 +298,6 @@ function updateLookupTable(data) {
 	shipsLookup.push(lookup);
 	
 	// remove dups
-	// return [... new Set(shipsLookup)];
 	const uniqueShips = Array.from(
 		new Set(shipsLookup
 			.map(ship => JSON.stringify(ship))
