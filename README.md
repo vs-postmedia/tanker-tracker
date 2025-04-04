@@ -22,23 +22,26 @@ Local & remote (github actions) scripts expect the following environment (.env) 
 
 | Variable | Format | Description |
 | --- | --- | --- |
-| AisVersion | int | Either 1 or 2 |
+| AisVersion | int | Either 1 or 2 | Class A === 2, Class B === 2
 | CallSign | string | Unique alphanumeric ID used by ships for radio communications |
 | Destination | string | Ship’s reported destination (does not appear to be in a standardized format) |
 | Dimension | string | In the format [Length]:[width] (in metres) |
-| Dte | boolean | Data Terminal Equipment |
+| Dte | boolean | Data Terminal Equipment | used to signal whether the transmitting station’s terminal equipment is ready
 | Eta | string | In the format [Year,Month,Day,Hour,Minute] (24-hour format). The format has been modified from the standard AIS format |
-| FixType | int | ??? |
+| FixType | int | The type of electronic positioning system used to determine the vessel’s position. 1 === GPS |
 | ImoNumber | int | 7-digit identified assigned to ships for their lifetime |
 | MaximumStaticDraught | double | Max vertical distance between the waterline and the bottom of the hull (in metres) |
-| MessageID | int | ??? |
+| MessageID | int | The type of AIS message being sent. 5 === Static & voyage related data |
 | Name | string | Registered name of the ship |
-| RepeatIndicator | int | ???? |
-| Spare | boolean | ??? |
-| Type | int | ??? |
-| UserID | int | ??? |
-| Valid| boolean | ??? |
+| RepeatIndicator | int | Value between 0 and 3. Used by the repeater to indicate how many times a message has been repeated. 0 = default; 3 = do not repeat any more. |
+| Spare | boolean | Not used. Reserved for future use. |
+| Type | int | AIS Message Type, which identifies the kind of information being transmitted. |
+| UserID | int | Unique identifier for transmitting vessel. Typically MMSI. |
+| Valid| boolean | Data considered valid or accurate |
 | date | string | In the format [YYYY-MM-DD]. Derived from time_utc timestamp |
 | MMSI | int | Maritime Mobile Service Identity. 9-digit number. Can change over time |
 | time_utc | string | utc datetime |
-| terminal | string | Either Westridge or Suncor. Based on boundary boxes defined in [data/zone-coords.json](https://github.com/vs-postmedia/tanker-tracker/blob/master/data/zone-coords.json) |
+| terminal | string | One of Westridge, Suncor, Parkland or Kitmat. Based on boundary boxes defined in [data/zone-coords.json](https://github.com/vs-postmedia/tanker-tracker/blob/master/data/zone-coords.json) |
+
+
+See USCG for more info: https://www.navcen.uscg.gov/ais-messages
