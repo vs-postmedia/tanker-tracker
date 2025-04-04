@@ -204,10 +204,10 @@ async function getShipStaticData(aisMessage) {
 	let imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
 
 	// this is written to current-ships.json on script exit
-	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
+	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
 	
 	// ships cache loaded from github
-	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
+	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
 
 	console.log(`SSD: IMO exists: ${imoExists}`);
 	console.log(`SSD: localCache: ${isLocalCache}`);
@@ -222,7 +222,7 @@ async function getShipStaticData(aisMessage) {
 		console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// save new ship in local cache (we'll save to disk on exit)
-		addToLocalCache(data);
+		addToLocalCache(data, timeArray);
 
 		// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
 		if (data.ImoNumber === 0) {return}
@@ -250,19 +250,20 @@ async function getShipStaticData(aisMessage) {
 	// ship is cached remotely but not locally
 	} else if (!isLocalCache) {
 +       // save new ship in local cache (we'll save to disk on exit)
-+       addToLocalCache(data);
++       addToLocalCache(data, timeArray);
 	}
 
 	console.log(`SSD: localCache: ${JSON.stringify(localCache)}`)
 }
 
 // add new ship to local cache to be saved on script exit
-function addToLocalCache(data) {
+function addToLocalCache(data, timeArray) {
 	console.log(`Adding to local cache: ${data.ImoNumber}`);
 	localCache.push({
 		ImoNumber: data.ImoNumber,
 		MMSI: data.MMSI,
-		date: data.date
+		date: data.date,
+		Eta: timeArray
 	});
 }
 
