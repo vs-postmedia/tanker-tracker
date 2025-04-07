@@ -18,7 +18,7 @@ import remoteCache from '../data/current-ships.js';
 // VARS
 let ssdMsgCount = 0;
 // const topImoCount = 2; // how many ships will display in the topImos table?
-let socket, parkland_poly, suncor_poly, westridge_poly; 
+let socket, kitimat_poly, parkland_poly, suncor_poly, westridge_poly; 
 const localCache = [];
 const shipsLookup_lookup = [];
 // const shipInfoFilepath = './data/ship-info-data';
@@ -35,10 +35,10 @@ async function openWebSocket(url, apiKey) {
 	socket = new WebSocket(url);
 
 	// create polygons for terminals
-	suncor_poly = polygon([zones.suncor]);
 	westridge_poly = polygon([zones.westridge]);
 	parkland_poly = polygon([zones.parkland]);
-
+	kitimat_poly = polygon([zones.kitimat]);
+	suncor_poly = polygon([zones.suncor]);
 
 	socket.addEventListener('open', _ => {
 		// setup websocket request
@@ -52,7 +52,10 @@ async function openWebSocket(url, apiKey) {
 				[zones.suncor[0], zones.suncor[2]],
 
 				// Parkland
-				[zones.parkland[0], zones.parkland[2]]
+				[zones.parkland[0], zones.parkland[2]],
+
+				// Kitimat
+				[zones.kitimat[0], zones.kitimat[2]],
 			],
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
@@ -94,7 +97,6 @@ async function openWebSocket(url, apiKey) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
-
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				// sometimes socket stops transmitting, leading to dupes
@@ -205,6 +207,9 @@ async function getShipStaticData(aisMessage) {
 
 	// this is written to current-ships.json on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
+
+	// timeArray changes when destination does & that makes a duplicate entry
+	let newDestination = localCache.some(d => d.ImoNumber === data.ImoNumber && d.Destination !== data.Destination.trim());
 	
 	// ships cache loaded from github
 	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
@@ -212,9 +217,12 @@ async function getShipStaticData(aisMessage) {
 	console.log(`SSD: IMO exists: ${imoExists}`);
 	console.log(`SSD: localCache: ${isLocalCache}`);
 	console.log(`SSD: remoteCache: ${isRemoteCache}`);
+	console.log(`SSD: newDestination: ${newDestination}`);
 
-	// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
-	if (!imoExists && !isLocalCache && !isRemoteCache) {
+	if (!isLocalCache && newDestination) {
+		console.log(`SSD: ${data.ImoNumber} departing...`)
+	} else if (!imoExists && !isRemoteCache && !isLocalCache) {
+		// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
 		console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
 		// save new ship in local cache (we'll save to disk on exit)
@@ -256,6 +264,7 @@ async function getShipStaticData(aisMessage) {
 function addToLocalCache(data, timeArray) {
 	console.log(`Adding to local cache: ${data.ImoNumber}`);
 	localCache.push({
+		Destination: data.Destination.trim(),
 		ImoNumber: data.ImoNumber,
 		// MMSI: data.MMSI,
 		// date: data.date,
@@ -278,8 +287,10 @@ function getTerminal(lat,lon) {
 	} else if (booleanPointInPolygon(point, suncor_poly)) {
 		terminal = 'Suncor';
 	} else if (booleanPointInPolygon(point, parkland_poly)) {
-		terminal = 'Parkland'
-	}
+		terminal = 'Parkland';
+	} else if (booleanPointInPolygon(point, kitimat_poly)) {
+		terminal = 'Kitimat';
+	} 
 
 	if (terminal == undefined) {
 		console.log(`Terminal undefined`)
