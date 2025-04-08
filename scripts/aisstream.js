@@ -209,7 +209,7 @@ async function getShipStaticData(aisMessage) {
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
 
 	// timeArray changes when destination does & that makes a duplicate entry
-	let newDestination = localCache.some(d => d.ImoNumber === data.ImoNumber && d.Destination !== data.Destination.trim());
+	let newDestination = remoteCache.some(d => d.ImoNumber === data.ImoNumber && d.Destination !== data.Destination.trim());
 	
 	// ships cache loaded from github
 	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
@@ -219,9 +219,7 @@ async function getShipStaticData(aisMessage) {
 	console.log(`SSD: remoteCache: ${isRemoteCache}`);
 	console.log(`SSD: newDestination: ${newDestination}`);
 
-	if (!isLocalCache && newDestination) {
-		console.log(`SSD: ${data.ImoNumber} departing...`)
-	} else if (!imoExists && !isRemoteCache && !isLocalCache) {
+	if (!imoExists && !isRemoteCache && !isLocalCache) {
 		// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
 		console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
@@ -252,6 +250,8 @@ async function getShipStaticData(aisMessage) {
 		// console.log(updatedLookup)
 		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 	// ship is cached remotely but not locally
+	} else if (!isLocalCache && newDestination) {
+		console.log(`SSD: ${data.ImoNumber} departing...`)
 	} else if (!isLocalCache) {
 +       // save new ship in local cache (we'll save to disk on exit)
 +       addToLocalCache(data, timeArray);
@@ -273,7 +273,6 @@ function addToLocalCache(data, timeArray) {
 }
 
 // check if ship lat/lon is inside one of the defined terminal zones
-// function getTerminal(data) {
 function getTerminal(lat,lon) {
 	let terminal;
 
