@@ -251,7 +251,8 @@ async function getShipStaticData(aisMessage) {
 		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 	// ship is cached remotely but not locally
 	} else if (!isLocalCache && newDestination) {
-		console.log(`SSD: ${data.ImoNumber} departing...`)
+		console.log(`SSD: ${data.ImoNumber} departing...`);
+		addToLocalCache(data, timeArray);
 	} else if (!isLocalCache) {
 +       // save new ship in local cache (we'll save to disk on exit)
 +       addToLocalCache(data, timeArray);
