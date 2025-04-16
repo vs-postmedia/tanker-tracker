@@ -219,7 +219,10 @@ async function getShipStaticData(aisMessage) {
 	console.log(`SSD: remoteCache: ${isRemoteCache}`);
 	console.log(`SSD: newDestination: ${newDestination}`);
 
-	if (!imoExists && !isRemoteCache && !isLocalCache) {
+	if (!isLocalCache && newDestination) {
+		console.log(`SSD: ${data.ImoNumber} departing...`);
+		addToLocalCache(data, timeArray);
+	} else if (!imoExists && !isRemoteCache && !isLocalCache) {
 		// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
 		console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
 
@@ -231,8 +234,8 @@ async function getShipStaticData(aisMessage) {
 
 		// trim whitespace from strings
 		data.CallSign = data.CallSign.trim();
-		// calculate ship dimensions (m)
 		data.Destination = data.Destination.trim();
+		// calculate ship dimensions (m)
 		data.Dimension = calculateShipDimensions(data.Dimension);
 		data.Eta = timeArray;
 		data.Name = data.Name.trim();
@@ -250,9 +253,6 @@ async function getShipStaticData(aisMessage) {
 		// console.log(updatedLookup)
 		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 	// ship is cached remotely but not locally
-	} else if (!isLocalCache && newDestination) {
-		console.log(`SSD: ${data.ImoNumber} departing...`);
-		addToLocalCache(data, timeArray);
 	} else if (!isLocalCache) {
 +       // save new ship in local cache (we'll save to disk on exit)
 +       addToLocalCache(data, timeArray);
