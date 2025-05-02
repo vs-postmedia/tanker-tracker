@@ -203,7 +203,7 @@ async function getShipStaticData(aisMessage) {
 	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 
 	// if we've never seen this IMO before - MAYBE DON'T NEED???
-	let imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.date === data.date);
+	let imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === data.timeArray);
 
 	// this is written to current-ships.json on script exit
 	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
