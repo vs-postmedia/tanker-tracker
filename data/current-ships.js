@@ -1,1 +1,1 @@
-export default [{"Destination":"VICTORIA PILOT STN","ImoNumber":9953042,"timeArray":"2025,5,13,4,45"},{"Destination":"CAVAN","ImoNumber":9784001,"timeArray":"2025,5,14,4,15"},{"Destination":"US NIK","ImoNumber":9939163,"timeArray":"2025,5,21,6,0"}]
+export default [{"Destination":"CAVAN","ImoNumber":9784001,"timeArray":"2025,5,14,4,15"},{"Destination":"VICTORIA PILOT STN","ImoNumber":9953042,"timeArray":"2025,5,13,4,45"}]
