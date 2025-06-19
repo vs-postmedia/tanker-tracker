@@ -1,1 +1,1 @@
-export default [{"Destination":"US NIK > CA VAN","ImoNumber":9930117,"timeArray":"2025,6,17,8,0"},{"Destination":"CA VAN > CN ZOS","ImoNumber":9930117,"timeArray":"2025,6,8,8,0"},{"Destination":"CN ZOS>>CA VAN","ImoNumber":9971719,"timeArray":"2025,6,5,19,30"},{"Destination":"CA VAN > CN ZOS","ImoNumber":9930117,"timeArray":"2025,7,8,8,0"}]
+export default [{"Destination":"CA VAN > CN ZOS","ImoNumber":9930117,"timeArray":"2025,7,8,8,0"},{"Destination":"CN ZOS>>CA VAN","ImoNumber":9971719,"timeArray":"2025,6,5,19,30"}]
