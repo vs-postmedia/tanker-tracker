@@ -1,1 +1,1 @@
-export default [{"Destination":"JP KIK>CA VAN","ImoNumber":9470131,"timeArray":"2025,6,30,12,0"},{"Destination":"VANCOUVER","ImoNumber":9688362,"timeArray":"2025,7,1,5,0"},{"Destination":"FOR ORDERS","ImoNumber":9492323,"timeArray":"2025,6,29,13,0"}]
+export default [{"Destination":"FOR ORDERS","ImoNumber":9492323,"timeArray":"2025,6,29,13,0"},{"Destination":"JP KIK>CA VAN","ImoNumber":9470131,"timeArray":"2025,6,30,12,0"}]
