@@ -1,1 +1,1 @@
-export default [{"Destination":"CA VAN","ImoNumber":9397755,"timeArray":"2025,7,4,14,0"},{"Destination":"CA KTM","ImoNumber":9937969,"timeArray":"2025,7,4,1,0"}]
+export default [{"Destination":"CA KTM","ImoNumber":9937969,"timeArray":"2025,7,4,1,0"},{"Destination":"CA VAN","ImoNumber":9397755,"timeArray":"2025,7,4,14,0"}]
