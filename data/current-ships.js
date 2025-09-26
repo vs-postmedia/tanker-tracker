@@ -1,1 +1,1 @@
-export default [{"Destination":"CONSTAN BANK","ImoNumber":9656890,"timeArray":"2025,9,24,4,0"},{"Destination":"VANCOUVER","ImoNumber":9453975,"timeArray":"2025,9,24,7,0"},{"Destination":"JPCTA > CAKTM","ImoNumber":9947603,"timeArray":"2025,9,25,0,0"}]
+export default [{"Destination":"JPCTA > CAKTM","ImoNumber":9947603,"timeArray":"2025,9,25,0,0"},{"Destination":"CONSTAN BANK","ImoNumber":9656890,"timeArray":"2025,9,24,4,0"},{"Destination":"VANCOUVER","ImoNumber":9453975,"timeArray":"2025,9,24,7,0"}]
