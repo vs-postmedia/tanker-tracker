@@ -1,1 +1,1 @@
-export default [{"Destination":"CN ZSO","ImoNumber":9939163,"timeArray":"2025,10,20,19,0"},{"Destination":"JPCTA > CAKTM","ImoNumber":9947603,"timeArray":"2025,9,25,0,0"},{"Destination":"CAVAN","ImoNumber":9473054,"timeArray":"2025,9,27,21,0"},{"Destination":"USLGB","ImoNumber":9473054,"timeArray":"2025,10,5,12,0"}]
+export default [{"Destination":"JPCTA > CAKTM","ImoNumber":9947603,"timeArray":"2025,9,25,0,0"},{"Destination":"CN ZSO","ImoNumber":9939163,"timeArray":"2025,10,20,19,0"},{"Destination":"USLGB","ImoNumber":9473054,"timeArray":"2025,10,5,12,0"}]
