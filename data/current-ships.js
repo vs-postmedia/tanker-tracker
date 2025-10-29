@@ -1,1 +1,1 @@
-export default [{"Destination":"FOR ORDER","ImoNumber":9947500,"timeArray":"2025,10,28,7,0"},{"Destination":"USCLM","ImoNumber":9933200,"timeArray":"2025,10,30,7,0"},{"Destination":"VANCOUVER","ImoNumber":9568184,"timeArray":"2025,10,27,9,30"}]
+export default [{"Destination":"VANCOUVER","ImoNumber":9568184,"timeArray":"2025,10,27,9,30"},{"Destination":"FOR ORDER","ImoNumber":9947500,"timeArray":"2025,10,28,7,0"},{"Destination":"USCLM","ImoNumber":9933200,"timeArray":"2025,10,30,7,0"}]
