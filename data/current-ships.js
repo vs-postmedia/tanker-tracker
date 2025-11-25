@@ -1,1 +1,1 @@
-export default [{"Destination":"VANCOUVER,WESTRIDGE","ImoNumber":9426207,"timeArray":"2025,11,24,19,30"}]
+export default [{"Destination":"CAKTM PBG","ImoNumber":9732369,"timeArray":"2025,11,24,11,0"},{"Destination":"VANCOUVER,WESTRIDGE","ImoNumber":9426207,"timeArray":"2025,11,24,19,30"}]
