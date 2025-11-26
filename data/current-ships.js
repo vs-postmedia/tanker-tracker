@@ -1,1 +1,1 @@
-export default [{"Destination":"CAKTM PBG","ImoNumber":9732369,"timeArray":"2025,11,24,11,0"},{"Destination":"LONG BEACH'CA","ImoNumber":9426207,"timeArray":"2025,12,1,0,0"},{"Destination":"CAVAN","ImoNumber":9682409,"timeArray":"2025,11,25,8,1"},{"Destination":"CAVAN","ImoNumber":9945306,"timeArray":"2025,11,25,9,45"}]
+export default [{"Destination":"CAVAN","ImoNumber":9682409,"timeArray":"2025,11,25,8,1"},{"Destination":"CAVAN","ImoNumber":9945306,"timeArray":"2025,11,25,9,45"},{"Destination":"CAKTM PBG","ImoNumber":9732369,"timeArray":"2025,11,24,11,0"}]
