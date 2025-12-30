@@ -1,1 +1,1 @@
-export default [{"Destination":"ZHOUSHAN,CHINA","ImoNumber":9361524,"timeArray":"2025,1,20,22,0"},{"Destination":"CA KTM","ImoNumber":9874466,"timeArray":"2025,12,12,4,0"},{"Destination":"US MRZ 3 SHELL - U","ImoNumber":9829095,"timeArray":"2025,1,3,3,0"},{"Destination":"JP CHB","ImoNumber":9874466,"timeArray":"2025,1,14,15,1"}]
+export default [{"Destination":"ZHOUSHAN,CHINA","ImoNumber":9361524,"timeArray":"2025,1,20,22,0"},{"Destination":"US MRZ 3 SHELL - U","ImoNumber":9829095,"timeArray":"2025,1,3,3,0"}]
