@@ -1,1 +1,1 @@
-export default [{"Destination":"US MRZ 3 SHELL - U","ImoNumber":9829095,"timeArray":"2025,1,4,0,0"},{"Destination":"ZHOUSHAN,CHINA","ImoNumber":9361524,"timeArray":"2025,1,20,22,0"}]
+export default [{"Destination":"ZHOUSHAN,CHINA","ImoNumber":9361524,"timeArray":"2025,1,20,22,0"},{"Destination":"US MRZ 3 SHELL - U","ImoNumber":9829095,"timeArray":"2025,1,4,0,0"}]
