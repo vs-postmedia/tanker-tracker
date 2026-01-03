@@ -1,1 +1,1 @@
-export default [{"Destination":"KRTSN","ImoNumber":9933200,"timeArray":"2026,1,22,11,0"},{"Destination":"KITIMAT","ImoNumber":9947627,"timeArray":"2026,1,2,3,0"},{"Destination":"VANCOUVER,CA","ImoNumber":9986817,"timeArray":"2026,12,31,12,30"}]
+export default [{"Destination":"KITIMAT","ImoNumber":9947627,"timeArray":"2026,1,2,3,0"},{"Destination":"VANCOUVER,CA","ImoNumber":9986817,"timeArray":"2026,12,31,12,30"},{"Destination":"KRTSN","ImoNumber":9933200,"timeArray":"2026,1,22,11,0"}]
