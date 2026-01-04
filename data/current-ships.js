@@ -1,1 +1,1 @@
-export default [{"Destination":"CAVAN","ImoNumber":9732929,"timeArray":"2026,1,2,16,0"},{"Destination":"CAVAN","ImoNumber":9993884,"timeArray":"2026,12,26,22,0"},{"Destination":"KITIMAT","ImoNumber":9947627,"timeArray":"2026,1,2,3,0"}]
+export default [{"Destination":"CAVAN","ImoNumber":9732929,"timeArray":"2026,1,2,16,0"},{"Destination":"KITIMAT","ImoNumber":9947627,"timeArray":"2026,1,2,3,0"},{"Destination":"CAVAN","ImoNumber":9993884,"timeArray":"2026,12,26,22,0"}]
