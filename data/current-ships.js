@@ -1,1 +1,1 @@
-export default [{"Destination":"CNYSA > CAKTM","ImoNumber":9947603,"timeArray":"2026,1,22,14,0"},{"Destination":"USLGB>CAVAN","ImoNumber":9783019,"timeArray":"2026,1,22,8,45"},{"Destination":"KRYOS>CAVAN","ImoNumber":9783007,"timeArray":"2026,1,21,13,15"}]
+export default [{"Destination":"USLGB>CAVAN","ImoNumber":9783019,"timeArray":"2026,1,22,8,45"},{"Destination":"CNYSA > CAKTM","ImoNumber":9947603,"timeArray":"2026,1,22,14,0"},{"Destination":"KRYOS>CAVAN","ImoNumber":9783007,"timeArray":"2026,1,21,13,15"}]
