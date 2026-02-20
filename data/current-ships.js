@@ -1,1 +1,1 @@
-export default [{"Destination":"FOR ORDERS","ImoNumber":9878876,"timeArray":"2026,2,19,11,0"},{"Destination":"USSFO > CAVAN","ImoNumber":9688415,"timeArray":"2026,2,18,7,0"},{"Destination":"VANCOUVER_WMT","ImoNumber":9846005,"timeArray":"2026,2,19,16,30"}]
+export default [{"Destination":"USSFO > CAVAN","ImoNumber":9688415,"timeArray":"2026,2,18,7,0"},{"Destination":"FOR ORDERS","ImoNumber":9878876,"timeArray":"2026,2,19,11,0"},{"Destination":"VANCOUVER_WMT","ImoNumber":9846005,"timeArray":"2026,2,19,16,30"}]
