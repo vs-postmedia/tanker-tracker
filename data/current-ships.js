@@ -1,1 +1,1 @@
-export default [{"Destination":"WESTRIDGE TERMINAL","ImoNumber":9795050,"timeArray":"2026,3,19,0,30"},{"Destination":"KRBOR","ImoNumber":9915894,"timeArray":"2026,4,3,0,1"}]
+export default [{"Destination":"KRBOR","ImoNumber":9915894,"timeArray":"2026,4,3,0,1"},{"Destination":"WESTRIDGE TERMINAL","ImoNumber":9795050,"timeArray":"2026,3,19,0,30"}]
