@@ -1,1 +1,1 @@
-export default [{"Destination":"WESTRIDGE TERMINAL","ImoNumber":9914668,"timeArray":"2026,4,17,0,1"},{"Destination":"CAVAN>CNNBG","ImoNumber":9810501,"timeArray":"2026,5,10,0,1"},{"Destination":"CAKTM","ImoNumber":9654880,"timeArray":"2026,4,19,1,0"}]
+export default [{"Destination":"CAVAN>CNNBG","ImoNumber":9810501,"timeArray":"2026,5,10,0,1"},{"Destination":"WESTRIDGE TERMINAL","ImoNumber":9914668,"timeArray":"2026,4,17,0,1"},{"Destination":"CAKTM","ImoNumber":9654880,"timeArray":"2026,4,19,1,0"}]
