@@ -1,1 +1,1 @@
-export default [{"Destination":"BURRARD_CANADA","ImoNumber":9834868,"timeArray":"2026,5,2,11,30"},{"Destination":"VANCOUVER","ImoNumber":9845960,"timeArray":"2026,5,1,5,0"}]
+export default [{"Destination":"BURRARD_CANADA","ImoNumber":9834868,"timeArray":"2026,5,2,11,30"},{"Destination":"CA KTM","ImoNumber":9976109,"timeArray":"2026,5,2,21,0"},{"Destination":"VANCOUVER","ImoNumber":9845960,"timeArray":"2026,5,1,5,0"}]
