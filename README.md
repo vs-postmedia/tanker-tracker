@@ -17,6 +17,10 @@ Local & remote (github actions) scripts expect the following environment (.env) 
 
 <em>NOTE: I have not yet tested a clean install from the github repo. There will almost certainly be bugs.</em>
 
+## AIS Messages
+See USCG for more info on AIS messages: https://www.navcen.uscg.gov/ais-messages
+
+
 ## AIS Data Dictionary (ships-data.csv)
 | Variable | Format | Description | Details
 | --- | --- | --- |
@@ -40,6 +44,3 @@ Local & remote (github actions) scripts expect the following environment (.env) 
 | MMSI | int | Maritime Mobile Service Identity. 9-digit number | Can change over time
 | time_utc | string | utc datetime |
 | terminal | string | One of Westridge, Suncor, Parkland or Kitmat | Based on boundary boxes defined in [data/zone-coords.json](https://github.com/vs-postmedia/tanker-tracker/blob/master/data/zone-coords.json)
-
-
-See USCG for more info on AIS messages: https://www.navcen.uscg.gov/ais-messages
