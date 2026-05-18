@@ -18,7 +18,27 @@ Local & remote (github actions) scripts expect the following environment (.env) 
 <em>NOTE: I have not yet tested a clean install from the github repo. There will almost certainly be bugs.</em>
 
 ## AIS Messages
-See USCG for more info on AIS messages: https://www.navcen.uscg.gov/ais-messages
+See USCG for more info on AIS messages: 
+    – https://www.navcen.uscg.gov/ais-messages
+    – https://api.vesselfinder.com/docs/ref-navstat.html
+
+| Navigation Status |	Description
+| 0 |	Under way using engine
+| 1 |	At anchor
+| 2 |	Not under command
+| 3 |	Restricted manoeuverability
+| 4 |	Constrained by her draught
+| 5 |	Moored
+| 6 |	Aground
+| 7 |	Engaged in Fishing
+| 8 |	Under way sailing
+| 9 |	Reserved for future amendment of Navigational Status for HSC
+| 10 |	Reserved for future amendment of Navigational Status for WIG
+| 11 |	Reserved for future use
+| 12 |	Reserved for future use
+| 13 |	Reserved for future use
+| 14 |	AIS-SART is active
+| 15 |	Not defined (default)
 
 
 ## AIS Data Dictionary (ships-data.csv)
@@ -44,3 +64,5 @@ See USCG for more info on AIS messages: https://www.navcen.uscg.gov/ais-messages
 | MMSI | int | Maritime Mobile Service Identity. 9-digit number | Can change over time
 | time_utc | string | utc datetime |
 | terminal | string | One of Westridge, Suncor, Parkland or Kitmat | Based on boundary boxes defined in [data/zone-coords.json](https://github.com/vs-postmedia/tanker-tracker/blob/master/data/zone-coords.json)
+
+
