@@ -12,30 +12,24 @@ const shipData = [];
 const shipsToSave = [];
 const loginIdSelector = '#home-login';
 const passIdSelector = '#home-password';
-const loginAddress = process.env.LOGIN_EQUASIS;
 const shipInfoFilepath = './data/ship-info-data';
 const isHeadless = process.env.LOGNAME === undefined ? 'new' : false;
 const equasisUrl = 'https://www.equasis.org/EquasisWeb/public/HomePage?fs=HomePage';
-const userAgent =
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-            '(KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36';
+const userAgent ='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36';
 const shipNameSelector = '#body > section:nth-child(9) > div > div > div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div:nth-child(1) > div.col-lg-12.col-md-12.col-sm-12.col-xs-12 > h4 > b:nth-child(1)';
 const shipInfoSelector = '#body > section:nth-child(9) > div > div > div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div:nth-child(2) > div.col-lg-12.col-md-12.col-sm-12.col-xs-12 > div.access-item > div > div > div.col-lg-12.col-md-12.col-sm-12.col-xs-12';
 
-async function init(data) {
+async function init(data, login, password) {
     console.log('Getting ship details for top IMOs...')
     // console.log(`DATA: ${JSON.stringify(data)}`);
     // console.log(`LOGNAME: ${process.env.LOGNAME}`)
     console.log(`HEADLESS: ${isHeadless}`);
 
-    // get equasis password
-    const password = process.env.PASS_EQUASIS;
-
     // initial browser setup
     const page = await setupPage(equasisUrl);
 
     // login to equasis 
-    const loggedInPage = await loginToEquasis(page, password);
+    const loggedInPage = await loginToEquasis(page, login, password);
     
     // search ship info
     const equasisResults = await fetchShipData(loggedInPage, data);
@@ -165,12 +159,12 @@ async function getInspectionData(page, imo) {
     return inspectionData;
 }
 
-async function loginToEquasis(page, password) {
+async function loginToEquasis(page, login, password) {
     // Wait for login elements to appear on the page.
     await page.waitForSelector('#home-login');
 
     // Type a username into the "username" input field with a delay between key presses.
-    await page.type(loginIdSelector, loginAddress, { delay: 50 });
+    await page.type(loginIdSelector, login, { delay: 50 });
 
     // Type a password into the "password" input field with a delay between key presses.
     await page.type(passIdSelector, password, { delay: 50 });

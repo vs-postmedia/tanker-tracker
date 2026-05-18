@@ -9,7 +9,6 @@ import getShipDetails from './get-ship-details.js';
 
 // DATA
 import zones from '../data/static/zone-coords.js';
-import shipsLookup from '../data/ships-lookup.js';
 import remoteCache from '../data/current-ships.js';
 
 
@@ -17,7 +16,6 @@ import remoteCache from '../data/current-ships.js';
 let localCacheModified = false;
 let socket, kitimat_poly, parkland_poly, suncor_poly, westridge_poly;
 const localCache = [...remoteCache];
-const shipsLookup_lookup = [];
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -25,7 +23,6 @@ const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanke
 // FILEPATHS
 const ships_data_filepath = './data/ships-data';
 const remoteCache_filepath = './data/current-ships';
-const ships_lookup_filepath = './data/ships-lookup';
 
 async function openWebSocket(url, apiKey) {
 	socket = new WebSocket(url);
@@ -182,8 +179,15 @@ async function getShipStaticData(aisMessage) {
 	console.log(`SSD: isLocalCache: ${isLocalCache}`);
 	if (isLocalCache) { return; }
 
-	// new ship in boundary
-	console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
+	// new tanker detected in bounding box
+	const terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
+	console.log('');
+	console.log(`NEW TANKER DETECTED`);
+	console.log(`  Name:     ${data.Name.trim()}`);
+	console.log(`  IMO:      ${data.ImoNumber}`);
+	console.log(`  MMSI:     ${data.MMSI}`);
+	console.log(`  Terminal: ${terminal}`);
+	console.log(`  Type:     ${data.Type}`);
 	addToLocalCache(data);
 
 	// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
@@ -198,7 +202,7 @@ async function getShipStaticData(aisMessage) {
 	data.Eta = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 	data.Name = data.Name.trim();
 	data.time_utc = timestamp;
-	data.terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
+	data.terminal = terminal;
 
 	const row = {
 		AisVersion: data.AisVersion,
@@ -223,9 +227,6 @@ async function getShipStaticData(aisMessage) {
 		terminal: data.terminal,
 	};
 	await saveData([row], { filepath: ships_data_filepath, format: 'csv', append: true });
-
-	const updatedLookup = updateLookupTable(data);
-	await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 
 	console.log(`SSD: localCache: ${JSON.stringify(localCache)}`);
 }
@@ -266,23 +267,6 @@ function getTerminal(lat,lon) {
 	}
 
 	return terminal;
-}
-
-// update a ship lookup table with imo & mmsi & date
-function updateLookupTable(data) {
-	const lookup = (({ImoNumber, MMSI, date}) => ({ImoNumber, MMSI, date}))(data);
-
-	// push to array to save to disk
-	shipsLookup.push(lookup);
-	
-	// remove dups
-	const uniqueShips = Array.from(
-		new Set(shipsLookup
-			.map(ship => JSON.stringify(ship))
-		))
-    	.map(ship => JSON.parse(ship));
-
-	return uniqueShips
 }
 
 
