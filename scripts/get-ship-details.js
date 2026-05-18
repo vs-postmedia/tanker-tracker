@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 import puppeteer from 'puppeteer';
 import saveData from './save-data.js';
 import { tidy, leftJoin } from '@tidyjs/tidy';
-import flagLookup from '../data/country-flags.js';
+import flagLookup from '../data/static/country-flags.js';
 
 // VARS
 let browser;

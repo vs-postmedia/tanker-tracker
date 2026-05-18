@@ -8,7 +8,7 @@ import generateSummaryStats from './generate-summary-stats.js';
 import getShipDetails from './get-ship-details.js';
 
 // DATA
-import zones from '../data/zone-coords.js';
+import zones from '../data/static/zone-coords.js';
 import shipsLookup from '../data/ships-lookup.js';
 import remoteCache from '../data/current-ships.js';
 
