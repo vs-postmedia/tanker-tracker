@@ -14,13 +14,10 @@ import remoteCache from '../data/current-ships.js';
 
 
 // VARS
-let ssdMsgCount = 0;
 let localCacheModified = false;
-// const topImoCount = 2; // how many ships will display in the topImos table?
 let socket, kitimat_poly, parkland_poly, suncor_poly, westridge_poly;
 const localCache = [...remoteCache];
 const shipsLookup_lookup = [];
-// const shipInfoFilepath = './data/ship-info-data';
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -90,22 +87,18 @@ async function openWebSocket(url, apiKey) {
 
 			// check for ships currently moored
 			if (aisMessage.MessageType === 'PositionReport') {
-				// cache currently moored ships
-				getCurrentShips(aisMessage);
-				console.log('')
-				console.log(`POSITION REPORT_NAME: ${aisMessage.MetaData.ShipName}`)
-				// console.log(`POSITION REPORT_NavStatus: ${JSON.stringify(aisMessage.Message.PositionReport)}`)
+				const mmsi = aisMessage.MetaData.MMSI;
+				if (localCache.some(d => d.MMSI === mmsi)) {
+					getCurrentShips(aisMessage);
+					console.log('')
+					console.log(`POSITION REPORT_NAME: ${aisMessage.MetaData.ShipName}`)
+				}
 			}
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
 			// check ship type
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
-				// sometimes socket stops transmitting, leading to dupes
-				ssdMsgCount += 1;
-				console.log('')
-				console.log(`SHIP STATIC DATA_NAME: ${aisMessage.MetaData.ShipName}`)
-				// console.log(`SHIP STATIC DATA: ${JSON.stringify(aisMessage.Message.ShipStaticData)}`)
 				getShipStaticData(aisMessage);
 			}
 		}
@@ -181,6 +174,7 @@ async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
 	data.MMSI = aisMessage.MetaData.MMSI;
 
+	console.log('');
 	console.log(`STATIC SHIP DATA: ${data.Type} ${data.Name}`);
 
 	// ship is already tracked as moored — skip until it departs (NavStatus 0 or 8)
