@@ -175,7 +175,7 @@ async function getShipStaticData(aisMessage) {
 	data.MMSI = aisMessage.MetaData.MMSI;
 
 	console.log('');
-	console.log(`STATIC SHIP DATA: ${data.Type} ${data.Name}`);
+	console.log(`STATIC SHIP DATA: ${data.ImoNumber} ${data.Name}`);
 
 	// ship is already tracked as moored — skip until it departs (NavStatus 0 or 8)
 	const isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
