@@ -2,9 +2,7 @@ import fs from 'fs';
 import WebSocket from 'ws';
 import Papa from 'papaparse';
 import saveData from './save-data.js';
-// import { tidy, leftJoin } from '@tidyjs/tidy';
 import { point, polygon } from '@turf/helpers';
-// import { postToTwitter } from './post-online.js';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import generateSummaryStats from './generate-summary-stats.js';
 import getShipDetails from './get-ship-details.js';
@@ -17,9 +15,10 @@ import remoteCache from '../data/current-ships.js';
 
 // VARS
 let ssdMsgCount = 0;
+let localCacheModified = false;
 // const topImoCount = 2; // how many ships will display in the topImos table?
-let socket, kitimat_poly, parkland_poly, suncor_poly, westridge_poly; 
-const localCache = [];
+let socket, kitimat_poly, parkland_poly, suncor_poly, westridge_poly;
+const localCache = [...remoteCache];
 const shipsLookup_lookup = [];
 // const shipInfoFilepath = './data/ship-info-data';
 
@@ -92,7 +91,10 @@ async function openWebSocket(url, apiKey) {
 			// check for ships currently moored
 			if (aisMessage.MessageType === 'PositionReport') {
 				// cache currently moored ships
-				// getCurrentShips(aisMessage);
+				getCurrentShips(aisMessage);
+				console.log('')
+				console.log(`POSITION REPORT_NAME: ${aisMessage.MetaData.ShipName}`)
+				// console.log(`POSITION REPORT_NavStatus: ${JSON.stringify(aisMessage.Message.PositionReport)}`)
 			}
 
 		// get static ship data on ships in bboxes
@@ -101,6 +103,9 @@ async function openWebSocket(url, apiKey) {
 			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
 				// sometimes socket stops transmitting, leading to dupes
 				ssdMsgCount += 1;
+				console.log('')
+				console.log(`SHIP STATIC DATA_NAME: ${aisMessage.MetaData.ShipName}`)
+				// console.log(`SHIP STATIC DATA: ${JSON.stringify(aisMessage.Message.ShipStaticData)}`)
 				getShipStaticData(aisMessage);
 			}
 		}
@@ -114,8 +119,8 @@ function calculateShipDimensions(data) {
 
 // shut ’er down!
 async function exitScript() {
-	// save the current ships cache to disk if we've received new messages
-	if (ssdMsgCount > 0) {
+	// save the current ships cache to disk if ships were added or removed
+	if (localCacheModified) {
 		await saveData(localCache, { filepath: remoteCache_filepath, format: 'js', append: false });
 		// we probably don't need this one....
 		await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
@@ -154,36 +159,19 @@ async function fetchShipData(filepath) {
 
 // get currentShipPositions
 async function getCurrentShips(aisMessage) {
-	const shipDetails = [];
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
+	const mmsi = metaData.MMSI;
 
-	console.log(`GET CURRENT SHIPS: ${metaData.ShipName.trim()}, ${positionReport.NavigationalStatus}`);
+	console.log(`GET CURRENT SHIPS: ${metaData.ShipName.trim()}, NavStatus: ${positionReport.NavigationalStatus}`);
 
-	// check navstatus to see if ship is moored or at anchor
+	// NavStatus 0 = Under Way Using Engine, 8 = Under Way Sailing — ship is departing
 	// https://api.vesselfinder.com/docs/ref-navstat.html
-	if (positionReport.NavigationalStatus === 1 || positionReport.NavigationalStatus === 5) {
-		// get mmsi number
-		let mmsi = metaData.MMSI;
-		// is MMSI already in the cache of moored ships?
-		let shipCached = localCache.some(d => d.MMSI === mmsi);
-
-		// if mmsi isn't cached as currently moored, do so.
-		if (shipCached === false) {
-			const ship = shipsLookup.filter(d => d.MMSI === mmsi);
-			if (ship.length > 0) {
-				// fetch ship details from Equasis
-				// let shipDetails = await fetchShipDetails(ship[0]);
-				let shipDetails = ship[0];
-
-				// localCache.push(shipDetails);
-				// addToLocalCache(shipDetails)
-			}
-
-			// console.log(`GCS: localCache: ${JSON.stringify(localCache)}`)
-			
-			// post announcement to social media
-			// postToTwitter(data);
+	if (positionReport.NavigationalStatus === 0 || positionReport.NavigationalStatus === 8) {
+		const cachedIndex = localCache.findIndex(d => d.MMSI === mmsi);
+		if (cachedIndex !== -1) {
+			console.log(`Ship departing, removing from cache: ${metaData.ShipName.trim()} (MMSI: ${mmsi})`);
+			localCache.splice(cachedIndex, 1);
 		}
 	}
 }
@@ -191,85 +179,70 @@ async function getCurrentShips(aisMessage) {
 // staticshipdata includes imo, mmsi, ship type, size, etc
 async function getShipStaticData(aisMessage) {
 	let data = aisMessage.Message.ShipStaticData;
+	data.MMSI = aisMessage.MetaData.MMSI;
 
 	console.log(`STATIC SHIP DATA: ${data.Type} ${data.Name}`);
 
-	// timestamp to local ymd format
+	// ship is already tracked as moored — skip until it departs (NavStatus 0 or 8)
+	const isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber);
+	console.log(`SSD: isLocalCache: ${isLocalCache}`);
+	if (isLocalCache) { return; }
+
+	// new ship in boundary
+	console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
+	addToLocalCache(data);
+
+	// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
+	if (data.ImoNumber === 0) { return; }
+
 	const timestamp = aisMessage.MetaData.time_utc;
 	const date = new Date(timestamp);
 	data.date = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+	data.CallSign = data.CallSign.trim();
+	data.Destination = data.Destination.trim();
+	data.Dimension = calculateShipDimensions(data.Dimension);
+	data.Eta = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
+	data.Name = data.Name.trim();
+	data.time_utc = timestamp;
+	data.terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
 
-	// create array from Eta
-	const timeArray = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
+	const row = {
+		AisVersion: data.AisVersion,
+		CallSign: data.CallSign,
+		Destination: data.Destination,
+		Dimension: data.Dimension,
+		Dte: data.Dte,
+		Eta: data.Eta,
+		FixType: data.FixType,
+		ImoNumber: data.ImoNumber,
+		MaximumStaticDraught: data.MaximumStaticDraught,
+		MessageID: data.MessageID,
+		Name: data.Name,
+		RepeatIndicator: data.RepeatIndicator,
+		Spare: data.Spare,
+		Type: data.Type,
+		UserID: data.UserID,
+		Valid: data.Valid,
+		date: data.date,
+		MMSI: data.MMSI,
+		time_utc: data.time_utc,
+		terminal: data.terminal,
+	};
+	await saveData([row], { filepath: ships_data_filepath, format: 'csv', append: true });
 
-	// if we've never seen this IMO before - MAYBE DON'T NEED???
-	let imoExists = shipsLookup.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === data.timeArray);
+	const updatedLookup = updateLookupTable(data);
+	await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
 
-	// this is written to current-ships.json on script exit
-	let isLocalCache = localCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
-
-	// timeArray changes when destination does & that makes a duplicate entry
-	let newDestination = remoteCache.some(d => d.ImoNumber === data.ImoNumber && d.Destination !== data.Destination.trim());
-	
-	// ships cache loaded from github
-	let isRemoteCache = remoteCache.some(d => d.ImoNumber === data.ImoNumber && d.timeArray === timeArray);
-
-	console.log(`SSD: IMO exists: ${imoExists}`);
-	console.log(`SSD: localCache: ${isLocalCache}`);
-	console.log(`SSD: remoteCache: ${isRemoteCache}`);
-	console.log(`SSD: newDestination: ${newDestination}`);
-
-	if (!isLocalCache && newDestination) {
-		console.log(`SSD: ${data.ImoNumber} departing...`);
-		addToLocalCache(data, timeArray);
-	} else if (!imoExists && !isRemoteCache && !isLocalCache) {
-		// if we don't have the imo & date saved or the imo isn't in the local or remote cache, it's a new ship
-		console.log(`SSD: New ship in boundary: ${aisMessage.MetaData.ShipName}`);
-
-		// save new ship in local cache (we'll save to disk on exit)
-		addToLocalCache(data, timeArray);
-
-		// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
-		if (data.ImoNumber === 0) {return}
-
-		// trim whitespace from strings
-		data.CallSign = data.CallSign.trim();
-		data.Destination = data.Destination.trim();
-		// calculate ship dimensions (m)
-		data.Dimension = calculateShipDimensions(data.Dimension);
-		data.Eta = timeArray;
-		data.Name = data.Name.trim();
-		// get mmsi & arrival date
-		data.MMSI = aisMessage.MetaData.MMSI;
-		data.time_utc = timestamp;
-		// determine terminal
-		data.terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
-		
-		// update ships_data array & save full ship data to disk
-		await saveData([data], { filepath: ships_data_filepath, format: 'csv', append: true });
-
-		// save data to use for a lookup
-		const updatedLookup = updateLookupTable(data);
-		// console.log(updatedLookup)
-		await saveData(updatedLookup, { filepath: ships_lookup_filepath, format: 'json', append: false });
-	// ship is cached remotely but not locally
-	} else if (!isLocalCache) {
-+       // save new ship in local cache (we'll save to disk on exit)
-+       addToLocalCache(data, timeArray);
-	}
-
-	console.log(`SSD: localCache: ${JSON.stringify(localCache)}`)
+	console.log(`SSD: localCache: ${JSON.stringify(localCache)}`);
 }
 
 // add new ship to local cache to be saved on script exit
-function addToLocalCache(data, timeArray) {
+function addToLocalCache(data) {
 	console.log(`Adding to local cache: ${data.ImoNumber}`);
+	localCacheModified = true;
 	localCache.push({
-		Destination: data.Destination.trim(),
 		ImoNumber: data.ImoNumber,
-		// MMSI: data.MMSI,
-		// date: data.date,
-		timeArray: timeArray
+		MMSI: data.MMSI,
 	});
 }
 
@@ -318,26 +291,6 @@ function updateLookupTable(data) {
 	return uniqueShips
 }
 
-// async function updateTopImoData(topImoCount) {
-// 	// run summary stats
-// 	const data = await fetchShipData(`${ships_data_filepath}.csv`);
-// 	const shipsUnique = await generateSummaryStats(data);
-	
-// 	// get the top x IMOs & fetch details from equasis
-// 	const topImos = shipsUnique.sort((a,b) => b.count - a.count).slice(0,topImoCount);
-
-// 	// NEED TO HAVE A TRY/CATCH BLOCK HERE
-// 	// get ship details for ships that moor most often
-// 	const equasisResults = await getShipDetails.init(topImos);
-
-// 	// merge topImos back into shipDetails to get the moorings count
-// 	const shipDetailsMerged = tidy(
-// 		equasisResults.ship_info,
-// 		leftJoin(topImos, {by: ['ImoNumber']})
-// 	);
-
-// 	return shipDetailsMerged;
-// }
 
 async function init(url, apiKey, runtime) {
 	console.log(`Starting new script run: ${new Date()}`);
