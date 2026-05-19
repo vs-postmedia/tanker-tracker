@@ -4,11 +4,7 @@ name: Open AisStream socket
 
 # Controls when the workflow will run
 on:
-  schedule:
-  # - cron: "0 * * * *" #run hourly (pst). https://crontab.guru/examples.html
-  # index.js run via cron-jobs.org
-
-  # Allows you to run this workflow manually from the Actions tab
+  # Triggered externally by cron-job.org via workflow_dispatch for reliable hourly scheduling
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
