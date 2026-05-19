@@ -261,9 +261,8 @@ function getTerminal(lat,lon) {
 	} 
 
 	if (terminal == undefined) {
-		console.log(`Terminal undefined`)
-		console.log(point, lat, lon);
-		terminal = undefined;
+		console.log(`Terminal undefined for lat/lon: ${lat}, ${lon}`);
+		terminal = 'NA';
 	}
 
 	return terminal;

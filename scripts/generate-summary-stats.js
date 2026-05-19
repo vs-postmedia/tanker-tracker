@@ -34,7 +34,7 @@ async function generateSummaryStats(allData) {
     console.log('Generating summary stats...');
 
     // we dont want ships that weren't in one of the terminals
-    const data = allData.filter(d => d.terminal.length > 0)
+    const data = allData.filter(d => d.terminal && d.terminal.length > 0)
 
     allData.forEach(d => {
         // better to strip blank lines out of ships-data.csv but...
