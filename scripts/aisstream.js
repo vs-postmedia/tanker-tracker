@@ -237,7 +237,7 @@ function addToLocalCache(data) {
 	localCacheModified = true;
 	localCache.push({
 		ImoNumber: data.ImoNumber,
-		MMSI: data.MMSI,
+		Name: data.Name.trim(),
 	});
 }
 
