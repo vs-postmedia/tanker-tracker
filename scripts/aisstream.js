@@ -87,8 +87,6 @@ async function openWebSocket(url, apiKey) {
 				const mmsi = aisMessage.MetaData.MMSI;
 				if (localCache.some(d => d.MMSI === mmsi)) {
 					getCurrentShips(aisMessage);
-					console.log('')
-					console.log(`POSITION REPORT_NAME: ${aisMessage.MetaData.ShipName}`)
 				}
 			}
 
