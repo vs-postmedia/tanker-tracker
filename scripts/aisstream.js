@@ -13,6 +13,7 @@ import remoteCache from '../data/current-ships.js';
 
 
 // VARS
+const useSSL = false;
 let localCacheModified = false;
 let socket, kitimat_poly, parkland_poly, suncor_poly, westridge_poly;
 const localCache = [...remoteCache];
@@ -25,7 +26,9 @@ const ships_data_filepath = './data/ships-data';
 const remoteCache_filepath = './data/current-ships';
 
 async function openWebSocket(url, apiKey) {
-	socket = new WebSocket(url);
+	socket = new WebSocket(url,
+		{ rejectUnauthorized: useSSL }
+	);
 
 	// create polygons for terminals
 	westridge_poly = polygon([zones.westridge]);
