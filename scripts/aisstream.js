@@ -239,6 +239,7 @@ function addToLocalCache(data) {
 	localCache.push({
 		ImoNumber: data.ImoNumber,
 		Name: data.Name.trim(),
+		terminal: data.Name.terminal,
 	});
 }
 
