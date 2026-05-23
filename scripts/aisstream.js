@@ -189,12 +189,14 @@ async function getShipStaticData(aisMessage) {
 	console.log(`NEW TANKER DETECTED`);
 	console.log(`  Name:     ${data.Name.trim()}`);
 	console.log(`  IMO:      ${data.ImoNumber}`);
-	console.log(`  MMSI:     ${data.MMSI}`);
-	console.log(`  Terminal: ${terminal}`);
-	console.log(`  Type:     ${data.Type}`);
+	// console.log(`  MMSI:     ${data.MMSI}`);
+	// console.log(`  Terminal: ${terminal}`);
+	// console.log(`  Type:     ${data.Type}`);
+	
+	// add to localcache
 	addToLocalCache(data);
 
-
+	// data cleanup
 	const timestamp = aisMessage.MetaData.time_utc;
 	const date = new Date(timestamp);
 	data.date = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
