@@ -194,9 +194,6 @@ async function getShipStaticData(aisMessage) {
 	// console.log(`  MMSI:     ${data.MMSI}`);
 	// console.log(`  Terminal: ${terminal}`);
 	// console.log(`  Type:     ${data.Type}`);
-	
-	// add to localcache
-	addToLocalCache(data);
 
 	// data cleanup
 	const timestamp = aisMessage.MetaData.time_utc;
@@ -209,6 +206,9 @@ async function getShipStaticData(aisMessage) {
 	data.Name = data.Name.trim();
 	data.time_utc = timestamp;
 	data.terminal = terminal;
+
+	// add to localcache
+	addToLocalCache(data);
 
 	// save to csv
 	const row = {
