@@ -244,7 +244,7 @@ function addToLocalCache(data) {
 		ImoNumber: data.ImoNumber,
 		MMSI: data.MMSI,
 		Name: data.Name.trim(),
-		terminal: data.Name.terminal
+		terminal: data.terminal
 	});
 }
 
