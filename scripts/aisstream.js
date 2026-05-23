@@ -180,6 +180,9 @@ async function getShipStaticData(aisMessage) {
 	console.log(`SSD: isLocalCache: ${isLocalCache}`);
 	if (isLocalCache) { return; }
 
+	// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
+	if (data.ImoNumber === 0) { return; }
+
 	// new tanker detected in bounding box
 	const terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
 	console.log('');
@@ -191,8 +194,6 @@ async function getShipStaticData(aisMessage) {
 	console.log(`  Type:     ${data.Type}`);
 	addToLocalCache(data);
 
-	// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
-	if (data.ImoNumber === 0) { return; }
 
 	const timestamp = aisMessage.MetaData.time_utc;
 	const date = new Date(timestamp);
@@ -238,8 +239,9 @@ function addToLocalCache(data) {
 	localCacheModified = true;
 	localCache.push({
 		ImoNumber: data.ImoNumber,
+		MMSI: data.MMSI,
 		Name: data.Name.trim(),
-		terminal: data.Name.terminal,
+		terminal: data.Name.terminal
 	});
 }
 
