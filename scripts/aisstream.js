@@ -87,8 +87,6 @@ async function openWebSocket(url, apiKey) {
 
 			// check for ships currently moored
 			if (aisMessage.MessageType === 'PositionReport') {
-				console.log('');
-				console.log(`POSITION REPORT: ${JSON.stringify(aisMessage.MetaData)}`)
 				const mmsi = aisMessage.MetaData.MMSI;
 				if (localCache.some(d => d.MMSI === mmsi)) {
 					getCurrentShips(aisMessage);
