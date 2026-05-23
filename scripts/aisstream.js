@@ -208,6 +208,7 @@ async function getShipStaticData(aisMessage) {
 	data.time_utc = timestamp;
 	data.terminal = terminal;
 
+	// save to csv
 	const row = {
 		AisVersion: data.AisVersion,
 		CallSign: data.CallSign,
