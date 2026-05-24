@@ -85,11 +85,11 @@ async function openWebSocket(url, apiKey) {
 	socket.addEventListener('message', (e) => {
 		let aisMessage = JSON.parse(e.data);
 
-			// check for ships currently moored
+			// Monitor PositionReports
 			if (aisMessage.MessageType === 'PositionReport') {
 				const mmsi = aisMessage.MetaData.MMSI;
 				if (localCache.some(d => d.MMSI === mmsi)) {
-					getCurrentShips(aisMessage);
+					getPositionReport(aisMessage);
 				}
 			}
 
@@ -149,12 +149,12 @@ async function fetchShipData(filepath) {
 }
 
 // get currentShipPositions
-async function getCurrentShips(aisMessage) {
+async function getPositionReport(aisMessage) {
 	const metaData = aisMessage.MetaData;
 	const positionReport = aisMessage.Message.PositionReport;
 	const mmsi = metaData.MMSI;
 
-	console.log(`GET CURRENT SHIPS: ${metaData.ShipName.trim()}, NavStatus: ${positionReport.NavigationalStatus}`);
+	console.log(`POSTITION REPORT: ${metaData.ShipName.trim()}, NavStatus: ${positionReport.NavigationalStatus}`);
 
 	// skip departure detection for ships first detected in this run — PositionReports may still be stale
 	if (!remoteCache.some(d => d.MMSI === mmsi)) return;
