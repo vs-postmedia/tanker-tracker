@@ -156,6 +156,9 @@ async function getCurrentShips(aisMessage) {
 
 	console.log(`GET CURRENT SHIPS: ${metaData.ShipName.trim()}, NavStatus: ${positionReport.NavigationalStatus}`);
 
+	// skip departure detection for ships first detected in this run — PositionReports may still be stale
+	if (!remoteCache.some(d => d.MMSI === mmsi)) return;
+
 	// NavStatus 0 = Under Way Using Engine, 8 = Under Way Sailing — ship is departing
 	// https://api.vesselfinder.com/docs/ref-navstat.html
 	if (positionReport.NavigationalStatus === 0 || positionReport.NavigationalStatus === 8) {
