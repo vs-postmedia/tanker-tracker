@@ -41,17 +41,11 @@ async function openWebSocket(url, apiKey) {
 		const subscriptionMsg = {
 			APIkey: apiKey,
 			BoundingBoxes: [
-				// Westridge Terminal
-				[zones.westridge[0], zones.westridge[2]],
-				
-				// Suncor Terminal
-				[zones.suncor[0], zones.suncor[2]],
+				// Burrard Inlet (covers Westridge, Suncor & Parkland terminals + departure lanes)
+				[zones.burrard_inlet[0], zones.burrard_inlet[2]],
 
-				// Parkland
-				[zones.parkland[0], zones.parkland[2]],
-
-				// Kitimat
-				[zones.kitimat[0], zones.kitimat[2]],
+				// Kitimat (expanded beyond terminal to catch departures along Douglas Channel)
+				zones.kitimat_bbox,
 			],
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
