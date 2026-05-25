@@ -180,8 +180,10 @@ async function getShipStaticData(aisMessage) {
 	// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
 	if (data.ImoNumber === 0) { return; }
 
-	// new tanker detected in bounding box
+	// new tanker detected in bounding box — ignore if not within a known terminal zone
 	const terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
+	if (terminal === 'NA') { return; }
+
 	console.log('');
 	console.log(`NEW TANKER DETECTED`);
 	console.log(`  Name:     ${data.Name.trim()}`);
