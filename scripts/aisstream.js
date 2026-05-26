@@ -17,6 +17,7 @@ const useSSL = false;
 let localCacheModified = false;
 let socket, kitimat_poly, parkland_poly, suncor_poly, westridge_poly;
 const localCache = [...remoteCache];
+const pendingRemoval = new Set();
 
 // https://api.vesselfinder.com/docs/ref-aistypes.html
 const ship_types = [9, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89]; // 80+ === tanker, 70 === cargo
@@ -102,8 +103,18 @@ function calculateShipDimensions(data) {
 	return `${data.A + data.B}:${data.C + data.D}`;
 }
 
-// shut ’er down!
+// shut ‘er down!
 async function exitScript() {
+	// flush pending departures before checking whether cache changed
+	for (const mmsi of pendingRemoval) {
+		const idx = localCache.findIndex(d => d.MMSI === mmsi);
+		if (idx !== -1) {
+			console.log(`Removing departed ship from cache: ${localCache[idx].Name} (MMSI: ${mmsi})`);
+			localCache.splice(idx, 1);
+			localCacheModified = true;
+		}
+	}
+
 	// save the current ships cache to disk if ships were added or removed
 	if (localCacheModified) {
 		await saveData(localCache, { filepath: remoteCache_filepath, format: 'js', append: false });
@@ -156,10 +167,9 @@ async function getPositionReport(aisMessage) {
 	// NavStatus 0 = Under Way Using Engine, 8 = Under Way Sailing — ship is departing
 	// https://api.vesselfinder.com/docs/ref-navstat.html
 	if (positionReport.NavigationalStatus === 0 || positionReport.NavigationalStatus === 8) {
-		const cachedIndex = localCache.findIndex(d => d.MMSI === mmsi);
-		if (cachedIndex !== -1) {
-			console.log(`Ship departing, removing from cache: ${metaData.ShipName.trim()} (MMSI: ${mmsi})`);
-			localCache.splice(cachedIndex, 1);
+		if (localCache.some(d => d.MMSI === mmsi) && !pendingRemoval.has(mmsi)) {
+			console.log(`Ship departing, marked for removal: ${metaData.ShipName.trim()} (MMSI: ${mmsi})`);
+			pendingRemoval.add(mmsi);
 		}
 	}
 }
