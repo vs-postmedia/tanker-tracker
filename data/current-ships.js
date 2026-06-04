@@ -1,1 +1,1 @@
-export default [{"ImoNumber":9408310,"MMSI":538003439,"Name":"SEA VOYAGER","terminal":"Westridge"},{"ImoNumber":9829100,"MMSI":636019072,"Name":"TYRRHENIAN SEA","terminal":"Westridge"},{"ImoNumber":9810501,"MMSI":563030600,"Name":"CSK ENDEAVOUR","terminal":"Westridge"},{"ImoNumber":9952074,"MMSI":352003205,"Name":"ESTEEM COWBOY","terminal":"Westridge"}]
+export default [{"ImoNumber":9408310,"MMSI":538003439,"Name":"SEA VOYAGER","terminal":"Westridge"},{"ImoNumber":9810501,"MMSI":563030600,"Name":"CSK ENDEAVOUR","terminal":"Westridge"}]
