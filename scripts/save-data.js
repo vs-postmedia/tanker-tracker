@@ -12,7 +12,7 @@ async function saveData(data, options) {
 			// covert to csv and append line to file
 			await fs.appendFile(
 				`${options.filepath}.${options.format}`, 
-				`\n${Papa.unparse(data, { header: false })}`,
+				`\r\n${Papa.unparse(data, { header: false })}`,
 				(err) => {
 					if (err) {
 						console.err('Error: ', err);
