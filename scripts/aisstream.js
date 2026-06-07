@@ -164,10 +164,11 @@ async function getPositionReport(aisMessage) {
 	// skip departure detection for ships first detected in this run — PositionReports may still be stale
 	if (!remoteCache.some(d => d.MMSI === mmsi)) return;
 
-	// NavStatus 0 = Under Way Using Engine, 8 = Under Way Sailing — ship is departing
+	// NavStatus 0 = Under Way Using Engine, 8 = Under Way Sailing
 	// https://api.vesselfinder.com/docs/ref-navstat.html
 	if (positionReport.NavigationalStatus === 0 || positionReport.NavigationalStatus === 8) {
-		if (localCache.some(d => d.MMSI === mmsi) && !pendingRemoval.has(mmsi)) {
+		const terminal = getTerminal(metaData.latitude, metaData.longitude);
+		if (terminal === 'NA' && localCache.some(d => d.MMSI === mmsi) && !pendingRemoval.has(mmsi)) {
 			console.log(`Ship departing, marked for removal: ${metaData.ShipName.trim()} (MMSI: ${mmsi})`);
 			pendingRemoval.add(mmsi);
 		}
@@ -212,7 +213,7 @@ async function getShipStaticData(aisMessage) {
 	data.Eta = `${date.getFullYear()},${data.Eta.Month},${data.Eta.Day},${data.Eta.Hour},${data.Eta.Minute}`;
 	data.Name = data.Name.trim();
 	data.time_utc = timestamp;
-	data.terminal = terminal;
+	data.terminal = terminal.trim();
 
 	// add to localcache
 	addToLocalCache(data);
