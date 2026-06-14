@@ -70,11 +70,6 @@ async function openWebSocket(url, apiKey) {
 		}
 	});
 
-	// error msg
-	socket.addEventListener('error', (e) => {
-		console.log(`Socket setup failed: ${JSON.stringify(e)}`);
-		exitScript();
-	});
 
 	// on message rx
 	socket.addEventListener('message', (e) => {
