@@ -1,1 +1,1 @@
-export default [{"ImoNumber":9783019,"MMSI":255806059,"Name":"NORDINDEPENDENCE","terminal":"Westridge"},{"ImoNumber":9593414,"MMSI":311001176,"Name":"TRYSIL SPIRIT","terminal":"Westridge"}]
+export default [{"ImoNumber":9593414,"MMSI":311001176,"Name":"TRYSIL SPIRIT","terminal":"Westridge"}]
