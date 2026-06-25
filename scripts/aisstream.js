@@ -38,6 +38,9 @@ async function openWebSocket(url, apiKey) {
 	suncor_poly = polygon([zones.suncor]);
 
 	socket.addEventListener('open', _ => {
+
+		console.log(zones.burrard_inlet[0], zones.burrard_inlet[0])
+		console.log(zones.kitimat_bbox)
 		// setup websocket request
 		const subscriptionMsg = {
 			APIkey: apiKey,
@@ -51,7 +54,7 @@ async function openWebSocket(url, apiKey) {
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
 
-		console.log(JSON.stringify(subscriptionMsg.FilterMessageTypes));
+		console.log(`Subscription: ${JSON.stringify(subscriptionMsg)}`);
 		console.log(`remoteCache: ${JSON.stringify(remoteCache)}`)
 		
 		// open AISstream websocket
@@ -70,9 +73,14 @@ async function openWebSocket(url, apiKey) {
 		}
 	});
 
+	socket.addEventListener('error', (e) => {
+		console.log(`ERROR: ${e.message}`)
+	})
+
 
 	// on message rx
 	socket.addEventListener('message', (e) => {
+		console.log('MESSAGE EVENT')
 		let aisMessage = JSON.parse(e.data);
 
 			// Monitor PositionReports
@@ -85,9 +93,14 @@ async function openWebSocket(url, apiKey) {
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
+			const ssd = aisMessage.Message.ShipStaticData;
+			const meta = aisMessage.MetaData;
+			console.log(`SSD RX: "${ssd.Name?.trim()}" IMO:${ssd.ImoNumber} Type:${ssd.Type} lat:${meta.latitude} lon:${meta.longitude}`);
 			// check ship type
-			if (ship_types.includes(aisMessage.Message.ShipStaticData.Type)) {
+			if (ship_types.includes(ssd.Type)) {
 				getShipStaticData(aisMessage);
+			} else {
+				console.log(`  -> SKIPPED: type ${ssd.Type} not in ship_types`);
 			}
 		}
 	});
@@ -184,11 +197,17 @@ async function getShipStaticData(aisMessage) {
 	if (isLocalCache) { return; }
 
 	// NOTE: SOME SHIPS FALSELY REPORT TYPE===80 - THEY DON'T TYPICALLY HAVE AN IMONUMBER
-	if (data.ImoNumber === 0) { return; }
+	if (data.ImoNumber === 0) {
+		console.log(`  -> SKIPPED: ImoNumber is 0`);
+		return;
+	}
 
 	// new tanker detected in bounding box — ignore if not within a known terminal zone
 	const terminal = getTerminal(aisMessage.MetaData.latitude, aisMessage.MetaData.longitude);
-	if (terminal === 'NA') { return; }
+	if (terminal === 'NA') {
+		console.log(`  -> SKIPPED: position (${aisMessage.MetaData.latitude}, ${aisMessage.MetaData.longitude}) not in any terminal zone`);
+		return;
+	}
 
 	console.log('');
 	console.log(`NEW TANKER DETECTED`);
