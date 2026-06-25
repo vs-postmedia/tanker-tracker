@@ -80,7 +80,7 @@ async function openWebSocket(url, apiKey) {
 
 	// on message rx
 	socket.addEventListener('message', (e) => {
-		console.log('MESSAGE EVENT')
+		// console.log('MESSAGE EVENT')
 		let aisMessage = JSON.parse(e.data);
 
 			// Monitor PositionReports
