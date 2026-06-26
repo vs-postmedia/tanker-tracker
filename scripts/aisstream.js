@@ -49,7 +49,7 @@ async function openWebSocket(url, apiKey) {
 				[zones.burrard_inlet[0], zones.burrard_inlet[2]],
 
 				// Kitimat (expanded beyond terminal to catch departures along Douglas Channel)
-				zones.kitimat_bbox,
+				[zones.kitimat_bbox[0], zones.kitimat_bbox[2]],
 			],
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
@@ -80,8 +80,10 @@ async function openWebSocket(url, apiKey) {
 
 	// on message rx
 	socket.addEventListener('message', (e) => {
-		// console.log('MESSAGE EVENT')
 		let aisMessage = JSON.parse(e.data);
+		const lat = aisMessage.MetaData?.latitude;
+		const area = (lat > 53 && lat < 55) ? 'KITIMAT' : 'BURRARD';
+		console.log(`[${area}] ${aisMessage.MessageType} lat:${lat} lon:${aisMessage.MetaData?.longitude}`);
 
 			// Monitor PositionReports
 			if (aisMessage.MessageType === 'PositionReport') {
