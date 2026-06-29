@@ -38,9 +38,6 @@ async function openWebSocket(url, apiKey) {
 	suncor_poly = polygon([zones.suncor]);
 
 	socket.addEventListener('open', _ => {
-
-		console.log(zones.burrard_inlet[0], zones.burrard_inlet[0])
-		console.log(zones.kitimat_bbox)
 		// setup websocket request
 		const subscriptionMsg = {
 			APIkey: apiKey,
@@ -54,7 +51,7 @@ async function openWebSocket(url, apiKey) {
 			FilterMessageTypes: ['PositionReport', 'ShipStaticData']
 		};
 
-		console.log(`Subscription: ${JSON.stringify(subscriptionMsg)}`);
+		// console.log(`Subscription: ${JSON.stringify(subscriptionMsg)}`);
 		console.log(`remoteCache: ${JSON.stringify(remoteCache)}`)
 		
 		// open AISstream websocket
@@ -83,21 +80,23 @@ async function openWebSocket(url, apiKey) {
 		let aisMessage = JSON.parse(e.data);
 		const lat = aisMessage.MetaData?.latitude;
 		const area = (lat > 53 && lat < 55) ? 'KITIMAT' : 'BURRARD';
-		console.log(`[${area}] ${aisMessage.MessageType} lat:${lat} lon:${aisMessage.MetaData?.longitude}`);
+		// console.log(`[${area}] ${aisMessage.MessageType} lat:${lat} lon:${aisMessage.MetaData?.longitude}`);
 
-			// Monitor PositionReports
-			if (aisMessage.MessageType === 'PositionReport') {
-				const mmsi = aisMessage.MetaData.MMSI;
-				if (localCache.some(d => d.MMSI === mmsi)) {
-					getPositionReport(aisMessage);
-				}
+		// Monitor PositionReports
+		if (aisMessage.MessageType === 'PositionReport') {
+			const mmsi = aisMessage.MetaData.MMSI;
+			if (localCache.some(d => d.MMSI === mmsi)) {
+				getPositionReport(aisMessage);
 			}
+		}
 
 		// get static ship data on ships in bboxes
 		if (aisMessage.MessageType === 'ShipStaticData') {
 			const ssd = aisMessage.Message.ShipStaticData;
 			const meta = aisMessage.MetaData;
+
 			console.log(`SSD RX: "${ssd.Name?.trim()}" IMO:${ssd.ImoNumber} Type:${ssd.Type} lat:${meta.latitude} lon:${meta.longitude}`);
+			
 			// check ship type
 			if (ship_types.includes(ssd.Type)) {
 				getShipStaticData(aisMessage);
@@ -128,7 +127,7 @@ async function exitScript() {
 	// save the current ships cache to disk if ships were added or removed
 	if (localCacheModified) {
 		await saveData(localCache, { filepath: remoteCache_filepath, format: 'js', append: false });
-		// we probably don't need this one....
+		// this is input for the web app displaying results
 		await saveData(localCache, { filepath: remoteCache_filepath, format: 'json', append: false });
 	}
 
