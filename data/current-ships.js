@@ -1,1 +1,1 @@
-export default [{"ImoNumber":9656890,"MMSI":538005201,"Name":"P. LONG BEACH","terminal":"Westridge"},{"ImoNumber":9893113,"MMSI":538009206,"Name":"PACIFIC CORAL","terminal":"Westridge"},{"ImoNumber":9361524,"MMSI":636013708,"Name":"NEW ACTIVITY","terminal":"Westridge"}]
+export default [{"ImoNumber":9361524,"MMSI":636013708,"Name":"NEW ACTIVITY","terminal":"Westridge"}]
