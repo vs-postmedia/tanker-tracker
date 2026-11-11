@@ -1,1 +1,1 @@
-export default [{"ImoNumber":1079199,"MMSI":636093413,"Name":"OASIS","terminal":"Westridge"},{"ImoNumber":9970375,"MMSI":563208900,"Name":"MOSSEL BAY","terminal":"Suncor"},{"ImoNumber":9831062,"MMSI":563082100,"Name":"ARIZONA LADY","terminal":"Westridge"},{"ImoNumber":9692155,"MMSI":538011635,"Name":"GOUSEA","terminal":"Suncor"}]
+export default [{"ImoNumber":1079199,"MMSI":636093413,"Name":"OASIS","terminal":"Westridge"},{"ImoNumber":9970375,"MMSI":563208900,"Name":"MOSSEL BAY","terminal":"Suncor"},{"ImoNumber":9692155,"MMSI":538011635,"Name":"GOUSEA","terminal":"Suncor"}]
